@@ -1,5 +1,7 @@
 #! /usr/bin/env node
 
+"use strict"
+
 const gulp = require("gulp")
 const babel = require("gulp-babel")
 const ts = require('gulp-typescript')
@@ -7,7 +9,7 @@ const parallel = require("run-parallel")
 const fs = require("fs")
 const path = require("path")
 const sourcemaps = require("gulp-sourcemaps")
-const changed = require("gulp-changed")
+const vinylPaths = require("vinyl-paths")
 
 function readFile(file, pathToData, callback) {
   fs.readFile(file, "utf8", function readFileCallback(error, result) {
@@ -39,7 +41,7 @@ function compile() {
   }
 
   const compilerOptions = tsConfig.compilerOptions
-  const destination = tsConfig.compilerOptions.outDir
+  const destination = path.resolve(tsConfig.compilerOptions.outDir)
   if (destination == null) {
     throw new Error("outDir is not specified in the tsconfig.json compilerOptions")
   }
@@ -58,9 +60,27 @@ function compile() {
     .pipe(sourcemaps.init())
     .pipe(ts(tsProject))
 
+  const pathCollector = vinylPaths()
   tsResult.js
-    .pipe(changed(destination, {extension: ".js"}))
     .pipe(babel())
-    .pipe(sourcemaps.write())
+    .pipe(sourcemaps.write("."))
+    .pipe(pathCollector)
     .pipe(gulp.dest(destination))
+    .on("end", function () {
+      fs.readdir(destination, function (error, files) {
+        if (error != null) {
+          console.error(error)
+          return
+        }
+
+        const existing = new Set(pathCollector.paths.map(it => path.basename(it)))
+        for (let file of files) {
+          if (file[0] !== "." && !existing.has(file)) {
+            fs.unlink(path.join(destination, file), error => {
+              if (error != null) console.error(error)
+            })
+          }
+        }
+      })
+    })
 }
