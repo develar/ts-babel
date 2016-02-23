@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "outDir": "out",
+    "newLine": "LF",
+    "noResolve": true,
+    "noEmitOnError": true,
+    "inlineSources": true,
+    "sourceMap": true,
+    "noImplicitReturns": true,
+    "noEmitHelpers": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "files": [
+    "typings/main/ambient/node/node.d.ts",
+    "typings/babel.d.ts",
+    "node_modules/typescript/lib/typescript.d.ts",
+    "src/builder.ts"
+  ]
+}
