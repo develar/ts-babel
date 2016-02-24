@@ -76,9 +76,12 @@ async function compile(config: any) {
 async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<BluebirdPromise<any>>) {
   const files = await BluebirdPromise.promisify(fse.readdir)(outDir)
   for (let file of files) {
-    const fullPath = path.join(outDir, file)
-    if (file[0] !== "." && !emittedFiles.has(fullPath) && !file.endsWith(".d.ts")) {
-      promises.push(unlink(fullPath))
+    if (file[0] !== "." && !file.endsWith(".d.ts")) {
+      // ts uses / regardless of OS
+      const fullPath = outDir + '/' +  file
+      if (!emittedFiles.has(fullPath)) {
+        promises.push(unlink(fullPath))
+      }
     }
   }
 }
