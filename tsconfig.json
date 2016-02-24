@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "noImplicitAny": true,
     "removeComments": true,
     "outDir": "out",
@@ -16,6 +16,8 @@
   },
   "files": [
     "typings/main/ambient/node/node.d.ts",
+    "typings/main/ambient/fs-extra/fs-extra.d.ts",
+    "typings/bluebird.d.ts",
     "typings/babel.d.ts",
     "node_modules/typescript/lib/typescript.d.ts",
     "src/builder.ts"
