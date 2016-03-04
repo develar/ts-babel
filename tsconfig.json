@@ -16,8 +16,8 @@
   },
   "files": [
     "typings/main/ambient/node/node.d.ts",
-    "typings/main/ambient/fs-extra/fs-extra.d.ts",
-    "typings/bluebird.d.ts",
+    "node_modules/fs-extra-p/index.d.ts",
+    "node_modules/fs-extra-p/bluebird.d.ts",
     "typings/babel.d.ts",
     "node_modules/typescript/lib/typescript.d.ts",
     "src/builder.ts"

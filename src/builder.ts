@@ -1,20 +1,25 @@
 import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "babel-core"
-import * as fse from "fs-extra"
+import { readdir, ensureDir, unlink, writeFile, readFile } from "fs-extra-p"
 import { Promise as BluebirdPromise } from "bluebird"
+
+if (process.argv.length === 3) {
+  process.chdir(path.resolve(process.argv[2]))
+}
 
 const basePath = process.cwd()
 const tsConfigPath = path.join(basePath, "tsconfig.json")
-
-const writeFile = <((filename: string, data: string) => BluebirdPromise<any>)>BluebirdPromise.promisify(fse.writeFile)
-const readFile = <((filename: string, encoding?: string) => BluebirdPromise<string | Buffer>)>BluebirdPromise.promisify(fse.readFile)
-const unlink = BluebirdPromise.promisify(fse.unlink)
 
 main()
   .catch(error => {
     if (error instanceof CompilationError) {
       for (let diagnostic of error.errors) {
+        if (diagnostic.file == null) {
+          console.log(diagnostic.messageText)
+          continue
+        }
+
         const location = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
         console.log(`${diagnostic.file.fileName} (${location.line + 1},${location.character + 1}): ${message}`)
@@ -49,7 +54,7 @@ async function compile(config: any) {
     throw new Error("outDir is not specified in the compilerOptions")
   }
 
-  await BluebirdPromise.promisify(fse.ensureDir)(outDir)
+  await ensureDir(outDir)
 
   const fileToSourceMap: any = {}
   const promises: Array<BluebirdPromise<any>> = []
@@ -74,7 +79,7 @@ async function compile(config: any) {
 }
 
 async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<BluebirdPromise<any>>) {
-  const files = await BluebirdPromise.promisify(fse.readdir)(outDir)
+  const files = await readdir(outDir)
   for (let file of files) {
     if (file[0] !== "." && !file.endsWith(".d.ts")) {
       // ts uses / regardless of OS
