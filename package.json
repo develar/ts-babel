@@ -1,7 +1,7 @@
 {
   "name": "ts-babel",
   "description": "Transform TypeScript compiler result using Babel to granular target control",
-  "version": "0.5.0",
+  "version": "0.5.3",
   "license": "MIT",
   "bin": {
     "ts-babel": "main.js"
@@ -11,12 +11,12 @@
     "release": "tsc && npm publish"
   },
   "dependencies": {
-    "babel-core": "^6.6.0",
+    "babel-core": "^6.6.5",
     "bluebird": "^3.3.3",
     "fs-extra-p": "^0.0.1"
   },
   "peerDependencies": {
-    "typescript": "^1.8.7"
+    "typescript": "^1.8.7 || ^1.9.0-dev.0"
   },
   "repository": {
     "type": "git",

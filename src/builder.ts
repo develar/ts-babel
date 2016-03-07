@@ -84,6 +84,12 @@ async function removedOld(outDir: string, emittedFiles: Set<string>, promises: A
     if (file[0] !== "." && !file.endsWith(".d.ts")) {
       // ts uses / regardless of OS
       const fullPath = outDir + '/' +  file
+
+      if (!file.includes(".")) {
+        removedOld(fullPath, emittedFiles, promises)
+        continue
+      }
+
       if (!emittedFiles.has(fullPath)) {
         promises.push(unlink(fullPath))
       }
