@@ -22,7 +22,6 @@ export function generateDeclarationFile(moduleName: string, declarationFiles: Ar
   const eol = "\n"
   const indent = "  "
   const output = createOutputStream(out, {mode: parseInt('644', 8)})
-debugger
   return new BluebirdPromise<void>(async (resolve, reject) => {
     output.on('close', resolve)
     output.on('error', reject)
@@ -70,7 +69,7 @@ debugger
       else if (node.kind === ts.SyntaxKind.StringLiteral && (node.parent.kind === ts.SyntaxKind.ExportDeclaration || node.parent.kind === ts.SyntaxKind.ImportDeclaration)) {
         const text = (<ts.StringLiteralTypeNode> node).text;
         if (text.charAt(0) === '.') {
-          return ` '${path.join(baseName, text)}'`;
+          return ' "' + baseName + "/" + text.substring(2) + '"'
         }
       }
 
