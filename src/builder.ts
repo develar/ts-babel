@@ -1,14 +1,14 @@
 import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "babel-core"
-import { readdir, ensureDir, unlink, writeFile, readFile } from "fs-extra-p"
+import { readdir, ensureDir, unlink, outputFile, readFile, outputJson } from "fs-extra-p"
 import { Promise as BluebirdPromise } from "bluebird"
+import { generateDeclarationFile } from "./declarationGenerator"
 
-if (process.argv.length === 3) {
-  process.chdir(path.resolve(process.argv[2]))
-}
+//noinspection JSUnusedLocalSymbols
+const __awaiter = require("./awaiter")
 
-const basePath = process.cwd()
+const basePath = process.argv.length === 3 ?  path.resolve(process.argv[2]) : process.cwd()
 const tsConfigPath = path.join(basePath, "tsconfig.json")
 
 main()
@@ -32,34 +32,44 @@ main()
   })
 
 async function main() {
-  const result = ts.parseConfigFileTextToJson(tsConfigPath, await readText(tsConfigPath))
-  if (result.error != null) {
-    throw new CompilationError([result.error])
+  const jsonResult = ts.parseConfigFileTextToJson(tsConfigPath, await readFile(tsConfigPath, "utf8"))
+  if (jsonResult.error != null) {
+    throw new CompilationError([jsonResult.error])
   }
 
-  // we check it before in any case
-  result.config.noEmitOnError = false
-  return compile(result.config)
+  const result = ts.parseJsonConfigFileContent(jsonResult.config, {
+    readDirectory: ts.sys.readDirectory
+  }, basePath)
+  checkErrors(result.errors)
+
+  await compile(result, jsonResult.config.declaration)
 }
 
-async function compile(config: any) {
-  const compilerOptions = ts.convertCompilerOptionsFromJson(config.compilerOptions, basePath)
-  checkErrors(compilerOptions.errors)
+async function compile(config: ts.ParsedCommandLine, declarationConfig: any) {
+  const compilerOptions = config.options
 
-  const program = ts.createProgram(config.files, compilerOptions.options)
+  if (declarationConfig != null) {
+    compilerOptions.declaration = true
+  }
+
+  compilerOptions.noEmitOnError = true
+
+  const program = ts.createProgram(config.fileNames, compilerOptions)
   checkErrors(ts.getPreEmitDiagnostics(program))
 
-  const outDir = compilerOptions.options.outDir
+  const outDir = compilerOptions.outDir
   if (outDir == null) {
     throw new Error("outDir is not specified in the compilerOptions")
   }
 
   await ensureDir(outDir)
 
+  const target = compilerOptions.target || ts.ScriptTarget.Latest
   const fileToSourceMap: any = {}
   const promises: Array<BluebirdPromise<any>> = []
   const emittedFiles = new Set<string>()
-  program.emit(undefined, (fileName, data) => {
+  const declarationFiles = Array<ts.SourceFile>()
+  const emitResult = program.emit(undefined, (fileName, data) => {
     emittedFiles.add(fileName)
 
     if (fileName.endsWith(".js")) {
@@ -69,13 +79,27 @@ async function compile(config: any) {
     else if (fileName.endsWith(".js.map")) {
       fileToSourceMap[fileName] = data
     }
+    else if (declarationConfig != null) {
+      declarationFiles.push(ts.createSourceFile(fileName, data, target, true))
+    }
   })
+
+  checkErrors(emitResult.diagnostics)
+  if (emitResult.emitSkipped) {
+    throw new Error("Emit skipped")
+  }
+
+  if (declarationFiles.length > 0) {
+    for (let moduleName of Object.keys(declarationConfig)) {
+      promises.push(generateDeclarationFile(moduleName, declarationFiles, compilerOptions, path.join(basePath, declarationConfig[moduleName]), basePath))
+    }
+  }
 
   await BluebirdPromise.all(promises)
 
   promises.length = 0
   await removedOld(outDir, emittedFiles, promises)
-  return await BluebirdPromise.all(promises)
+  await BluebirdPromise.all(promises)
 }
 
 async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<BluebirdPromise<any>>) {
@@ -105,23 +129,14 @@ function processCompiled(code: string, sourceMap: string, jsFileName: string, so
   })
 
   promises.push(
-    writeFile(jsFileName, result.code),
-    writeFile(sourceMapFileName, JSON.stringify(result.map)))
+    outputFile(jsFileName, result.code),
+    outputJson(sourceMapFileName, result.map))
 }
 
 function checkErrors(errors: Array<ts.Diagnostic>): void {
   if (errors.length !== 0) {
     throw new CompilationError(errors)
   }
-}
-
-//noinspection JSUnusedLocalSymbols
-function __awaiter(thisArg: any, _arguments: any, ignored: any, generator: Function) {
-  return BluebirdPromise.coroutine(generator).call(thisArg, _arguments)
-}
-
-function readText(file: string): BluebirdPromise<string> {
-  return <BluebirdPromise<string>>readFile(file, "utf8")
 }
 
 class CompilationError extends Error {

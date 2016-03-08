@@ -1,7 +1,6 @@
 <component name="libraryTable">
   <library name="ts" type="javaScript">
     <properties>
-      <option name="frameworkName" value="node_modules" />
       <sourceFilesUrls>
         <item url="file://$PROJECT_DIR$/node_modules/typescript/lib/typescript.d.ts" />
       </sourceFilesUrls>
