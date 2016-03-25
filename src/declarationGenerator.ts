@@ -39,18 +39,22 @@ export function generateDeclarationFile(moduleName: string, declarationFiles: Ar
     }
 
     let sourceModuleId: string
-    let baseName: string
-    let name = declarationFile.fileName.slice(0, -5).replace(/\//g, '/').substring(compilerOptions.outDir.length + 1)
+    let baseName = ""
+    const name = declarationFile.fileName.slice(0, -5).replace(/\//g, '/').substring(compilerOptions.outDir.length + 1)
     if (moduleName) {
-      baseName = moduleName + '/' + relativeOutDir
-      sourceModuleId = moduleName + '/' + (name === "index" ? "" : relativeOutDir + '/' + name)
+      baseName = moduleName + '/'
+      sourceModuleId = moduleName
+      if (name !== "index") {
+        sourceModuleId += '/' + relativeOutDir
+      }
     }
     else {
       sourceModuleId = relativeOutDir
-      baseName = relativeOutDir
-      if (name !== "index") {
-        sourceModuleId += '/' + name
-      }
+    }
+
+    baseName += relativeOutDir
+    if (name !== "index") {
+      sourceModuleId += '/' + name
     }
 
     output.write('declare module \'' + sourceModuleId + '\' {' + eol + indent);

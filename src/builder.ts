@@ -4,6 +4,7 @@ import * as babel from "babel-core"
 import { readdir, ensureDir, unlink, outputFile, readFile, outputJson } from "fs-extra-p"
 import { Promise as BluebirdPromise } from "bluebird"
 import { generateDeclarationFile } from "./declarationGenerator"
+import markdown = require("markdown-it")
 
 //noinspection JSUnusedLocalSymbols
 const __awaiter = require("./awaiter")
@@ -42,11 +43,12 @@ async function main() {
   }, basePath)
   checkErrors(result.errors)
 
-  await compile(result, jsonResult.config.declaration)
+  await compile(result, jsonResult.config)
 }
 
-async function compile(config: ts.ParsedCommandLine, declarationConfig: any) {
+async function compile(config: ts.ParsedCommandLine, tsConfig: any) {
   const compilerOptions = config.options
+  const declarationConfig: any = tsConfig.declaration
 
   if (declarationConfig != null) {
     compilerOptions.declaration = true
@@ -84,6 +86,13 @@ async function compile(config: ts.ParsedCommandLine, declarationConfig: any) {
     }
   })
 
+  if (tsConfig.docs != null) {
+    const docs = generateDocs(program)
+    if (docs.length !== 0) {
+      writeDocFile(path.resolve(basePath, tsConfig.docs), docs)
+    }
+  }
+
   checkErrors(emitResult.diagnostics)
   if (emitResult.emitSkipped) {
     throw new Error("Emit skipped")
@@ -100,6 +109,116 @@ async function compile(config: ts.ParsedCommandLine, declarationConfig: any) {
   promises.length = 0
   await removedOld(outDir, emittedFiles, promises)
   await BluebirdPromise.all(promises)
+}
+
+async function writeDocFile(docOutFile: string, content: string): Promise<void> {
+  let existingContent: string = null
+  try {
+    existingContent = await readFile(docOutFile, "utf8")
+  }
+  catch (e) {
+  }
+
+  if (existingContent == null) {
+    return outputFile(docOutFile, content)
+  }
+  else {
+    const startMarker = "<!-- do not edit. start of generated block -->"
+    const endMarker = "<!-- end of generated block -->"
+    const start = existingContent.indexOf(startMarker)
+    const end = existingContent.indexOf(endMarker)
+    if (start != -1 && end != -1) {
+      return outputFile(docOutFile, existingContent.substring(0, start + startMarker.length) + "\n" + content + "\n" + existingContent.substring(end))
+    }
+  }
+  console.log("Write doc to " + docOutFile)
+}
+
+function generateDocs(program: ts.Program): string {
+  const topicToProperties = new Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>()
+
+  for (let sourceFile of program.getSourceFiles()) {
+    if (!sourceFile.isDeclarationFile) {
+      for (let statement of sourceFile.statements) {
+        if (statement.kind === ts.SyntaxKind.InterfaceDeclaration) {
+          const topicName = getComment(statement)
+          if (topicName == null) {
+            continue
+          }
+
+          const interfaceDeclaration = <ts.InterfaceDeclaration>statement
+          const interfaceName = (<ts.Identifier>interfaceDeclaration.name).text
+          const interfaceDescriptor = {
+            interfaceName: interfaceName,
+            heading: topicName,
+          }
+
+          let nameToProperty = topicToProperties.get(interfaceDescriptor)
+          for (let member of interfaceDeclaration.members) {
+            if (member.kind === ts.SyntaxKind.PropertySignature) {
+              const comment = getComment(member)
+              if (comment != null) {
+                if (nameToProperty == null) {
+                  nameToProperty = new Map<string, PropertyDescriptor>()
+                  topicToProperties.set(interfaceDescriptor, nameToProperty)
+                }
+                nameToProperty.set((<ts.Identifier>member.name).text, new PropertyDescriptor(interfaceName, comment))
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function getComment(node: ts.Node): string {
+      const leadingCommentRanges = ts.getLeadingCommentRanges(sourceFile.text, node.pos)
+      if (leadingCommentRanges == null || leadingCommentRanges.length === 0) {
+        return null
+      }
+      else {
+        const commentRange = leadingCommentRanges[0]
+        return sourceFile.text.slice(commentRange.pos + "/**".length, commentRange.end - "*/".length).trim()
+      }
+    }
+  }
+
+  const result = renderDocs(topicToProperties)
+  console.log(result)
+  return result
+}
+
+function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>): string {
+  let result = ""
+  const md = markdown({
+    typographer: true,
+  })
+    .disable(["link", "emphasis"])
+
+  topicToProperties.forEach((nameToProperty, interfaceDescriptor) => {
+    result += `<a class="anchor" href="#${interfaceDescriptor.interfaceName}" aria-hidden="true"></a>\n# ${interfaceDescriptor.heading}\n`
+
+    result += "| Name | Description\n"
+    result += "| --- | ---"
+    nameToProperty.forEach((descriptor, propertyName) => {
+      result += `\n| <a class="anchor" href="#${descriptor.interfaceName}-${propertyName}" aria-hidden="true"></a>${propertyName} | `
+      // trim is required because markdown-it adds new line in the end
+      const src = descriptor.description
+      result += src.includes("\n") ? md.render(src).trim().replace(/\n/g, " ") : src
+    })
+
+    result += "\n"
+  })
+  return result
+}
+
+export class InterfaceDescriptor {
+  interfaceName: string
+  heading: string
+}
+
+export class PropertyDescriptor {
+  constructor(public interfaceName: string, public description: string) {
+  }
 }
 
 async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<BluebirdPromise<any>>) {
