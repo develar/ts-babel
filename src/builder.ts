@@ -182,9 +182,7 @@ function generateDocs(program: ts.Program): string {
     }
   }
 
-  const result = renderDocs(topicToProperties)
-  console.log(result)
-  return result
+  return renderDocs(topicToProperties)
 }
 
 function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>): string {
@@ -195,7 +193,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     .disable(["link", "emphasis"])
 
   topicToProperties.forEach((nameToProperty, interfaceDescriptor) => {
-    result += `<a class="anchor" href="#${interfaceDescriptor.interfaceName}" aria-hidden="true"></a>\n# ${interfaceDescriptor.heading}\n`
+    result += `<a class="anchor" href="#${interfaceDescriptor.interfaceName}" aria-hidden="true"></a>\n${interfaceDescriptor.heading}\n`
 
     result += "| Name | Description\n"
     result += "| --- | ---"
