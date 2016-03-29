@@ -193,12 +193,12 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     .disable(["link", "emphasis"])
 
   topicToProperties.forEach((nameToProperty, interfaceDescriptor) => {
-    result += `<a class="anchor" href="#${interfaceDescriptor.interfaceName}" aria-hidden="true"></a>\n${interfaceDescriptor.heading}\n`
+    result += `${anchor(interfaceDescriptor.interfaceName)}\n${interfaceDescriptor.heading}\n`
 
     result += "| Name | Description\n"
     result += "| --- | ---"
     nameToProperty.forEach((descriptor, propertyName) => {
-      result += `\n| <a class="anchor" href="#${descriptor.interfaceName}-${propertyName}" aria-hidden="true"></a>${propertyName} | `
+      result += `\n| ${anchor(descriptor.interfaceName + "-" + propertyName)}${propertyName} | `
       // trim is required because markdown-it adds new line in the end
       const src = descriptor.description
       result += src.includes("\n") ? md.render(src).trim().replace(/\n/g, " ") : src
@@ -207,6 +207,10 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     result += "\n"
   })
   return result
+}
+
+function anchor(link: string) {
+  return `<a class="anchor" id="user-content-${link}" href="#${link}" aria-hidden="true"></a>`
 }
 
 export class InterfaceDescriptor {
