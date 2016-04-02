@@ -177,6 +177,9 @@ function generateDocs(program: ts.Program): string {
       }
       else {
         const commentRange = leadingCommentRanges[0]
+        if (sourceFile.text.slice(commentRange.pos, commentRange.pos + 2) === "//") {
+          return null
+        }
         return sourceFile.text.slice(commentRange.pos + "/**".length, commentRange.end - "*/".length).trim()
       }
     }
@@ -193,7 +196,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     .disable(["link", "emphasis"])
 
   topicToProperties.forEach((nameToProperty, interfaceDescriptor) => {
-    result += `${anchor(interfaceDescriptor.interfaceName)}\n${interfaceDescriptor.heading}\n`
+    result += `\n\n${anchor(interfaceDescriptor.interfaceName)}\n${interfaceDescriptor.heading}\n`
 
     result += "| Name | Description\n"
     result += "| --- | ---"
@@ -210,7 +213,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
 }
 
 function anchor(link: string) {
-  return `<a class="anchor" id="user-content-${link}" href="#${link}" aria-hidden="true"></a>`
+  return `<a name="#${link}"></a>`
 }
 
 export class InterfaceDescriptor {
