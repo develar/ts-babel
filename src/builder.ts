@@ -141,16 +141,16 @@ function generateDocs(program: ts.Program): string {
     if (!sourceFile.isDeclarationFile) {
       for (let statement of sourceFile.statements) {
         if (statement.kind === ts.SyntaxKind.InterfaceDeclaration) {
-          const topicName = getComment(statement)
-          if (topicName == null) {
+          const interfaceDescription = getComment(statement)
+          if (interfaceDescription == null) {
             continue
           }
 
           const interfaceDeclaration = <ts.InterfaceDeclaration>statement
           const interfaceName = (<ts.Identifier>interfaceDeclaration.name).text
           const interfaceDescriptor = {
-            interfaceName: interfaceName,
-            heading: topicName,
+            name: interfaceName,
+            description: interfaceDescription,
           }
 
           let nameToProperty = topicToProperties.get(interfaceDescriptor)
@@ -177,15 +177,24 @@ function generateDocs(program: ts.Program): string {
       }
       else {
         const commentRange = leadingCommentRanges[0]
-        if (sourceFile.text.slice(commentRange.pos, commentRange.pos + 2) === "//") {
+        if (sourceFile.text[commentRange.pos] == "/" && sourceFile.text[commentRange.pos + 1] == "/") {
           return null
         }
-        return sourceFile.text.slice(commentRange.pos + "/**".length, commentRange.end - "*/".length).trim()
+        else {
+          const isTwo = sourceFile.text[commentRange.pos + 2] == "*"
+          return stripIndent(sourceFile.text.slice(commentRange.pos + (isTwo ? 3 : 2), commentRange.end - "*/".length)).trim()
+        }
       }
     }
   }
 
   return renderDocs(topicToProperties)
+}
+
+function stripIndent(str: string): string {
+	const match = str.match(/^[ \t]*(?=\S)/gm)
+  const indent = match == null ? 0 : Math.min.apply(Math, match.map(it => it.length))
+  return indent > 0 ? str.replace(new RegExp("^[ \\t]{" + indent + "}", "gm"), "") : str
 }
 
 function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>): string {
@@ -195,16 +204,26 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
   })
     .disable(["link", "emphasis"])
 
+  function render(src: string): string {
+    return src.includes("\n") ? md.render(src).trim().replace(/\n/g, " ") : src
+  }
+
   topicToProperties.forEach((nameToProperty, interfaceDescriptor) => {
-    result += `\n\n${anchor(interfaceDescriptor.interfaceName)}\n${interfaceDescriptor.heading}\n`
+    result += `\n${anchor(interfaceDescriptor.name)}\n${interfaceDescriptor.description}\n`
+    if (interfaceDescriptor.description.includes("\n")) {
+      result += "\n"
+    }
 
     result += "| Name | Description\n"
     result += "| --- | ---"
     nameToProperty.forEach((descriptor, propertyName) => {
-      result += `\n| ${anchor(descriptor.interfaceName + "-" + propertyName)}${propertyName} | `
+      result += `\n| ${propertyName} | `
+
+      //  put anchor in the text because if multiline, name will be aligned vertically and on on navigation top of the text will be out of screen
+      result += anchor(descriptor.interfaceName + "-" + propertyName)
+
       // trim is required because markdown-it adds new line in the end
-      const src = descriptor.description
-      result += src.includes("\n") ? md.render(src).trim().replace(/\n/g, " ") : src
+      result += render(descriptor.description)
     })
 
     result += "\n"
@@ -213,12 +232,12 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
 }
 
 function anchor(link: string) {
-  return `<a name="#${link}"></a>`
+  return `<a name="${link}"></a>`
 }
 
 export class InterfaceDescriptor {
-  interfaceName: string
-  heading: string
+  name: string
+  description: string
 }
 
 export class PropertyDescriptor {
