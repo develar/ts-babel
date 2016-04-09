@@ -24,6 +24,7 @@
     "node_modules/typescript/lib/typescript.d.ts",
     "src/builder.ts",
     "src/declarationGenerator.ts",
+    "src/docGenerator.ts",
     "src/awaiter.ts"
   ]
 }
