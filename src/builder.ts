@@ -68,7 +68,7 @@ async function compile(config: ts.ParsedCommandLine, tsConfig: any) {
 
   const target = compilerOptions.target || ts.ScriptTarget.Latest
   const fileToSourceMap: any = {}
-  const promises: Array<BluebirdPromise<any>> = []
+  const promises: Array<Promise<any>> = []
   const emittedFiles = new Set<string>()
   const declarationFiles = Array<ts.SourceFile>()
   const emitResult = program.emit(undefined, (fileName, data) => {
@@ -111,7 +111,7 @@ async function compile(config: ts.ParsedCommandLine, tsConfig: any) {
   await BluebirdPromise.all(promises)
 }
 
-async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<BluebirdPromise<any>>) {
+async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<Promise<any>>) {
   const files = await readdir(outDir)
   for (let file of files) {
     if (file[0] !== "." && !file.endsWith(".d.ts")) {
@@ -130,7 +130,7 @@ async function removedOld(outDir: string, emittedFiles: Set<string>, promises: A
   }
 }
 
-function processCompiled(code: string, sourceMap: string, jsFileName: string, sourceMapFileName: string, promises: Array<BluebirdPromise<any>>) {
+function processCompiled(code: string, sourceMap: string, jsFileName: string, sourceMapFileName: string, promises: Array<Promise<any>>) {
   const result = babel.transform(code, {
     inputSourceMap: JSON.parse(sourceMap),
     sourceMaps: true,

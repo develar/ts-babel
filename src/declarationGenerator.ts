@@ -1,4 +1,4 @@
-import { createOutputStream } from 'fs-extra-p'
+import { createWriteStream, mkdirs } from 'fs-extra-p'
 import * as path from 'path'
 import { Promise as BluebirdPromise } from "bluebird"
 import * as ts from 'typescript'
@@ -16,12 +16,14 @@ const filenameToMid: (filename: string) => string = (function () {
   }
 })();
 
-export function generateDeclarationFile(moduleName: string, declarationFiles: Array<ts.SourceFile>, compilerOptions: ts.CompilerOptions, out: string, basePath: string): BluebirdPromise<any> {
+export async function generateDeclarationFile(moduleName: string, declarationFiles: Array<ts.SourceFile>, compilerOptions: ts.CompilerOptions, out: string, basePath: string): Promise<any> {
   const relativeOutDir = path.relative(basePath, compilerOptions.outDir)
+
+  await mkdirs(path.dirname(out))
 
   const eol = "\n"
   const indent = "  "
-  const output = createOutputStream(out, {mode: parseInt('644', 8)})
+  const output = createWriteStream(out, {mode: parseInt('644', 8)})
   return new BluebirdPromise<void>(async (resolve, reject) => {
     output.on('close', resolve)
     output.on('error', reject)
