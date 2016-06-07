@@ -86,7 +86,7 @@ async function compile(config: ts.ParsedCommandLine, tsConfig: any) {
     }
   })
 
-  if (tsConfig.docs != null) {
+  if (process.env.CI == null && tsConfig.docs != null) {
     const docs = generateDocs(program)
     if (docs.length !== 0) {
       writeDocFile(path.resolve(basePath, tsConfig.docs), docs)
