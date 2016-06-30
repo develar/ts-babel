@@ -38,9 +38,7 @@ async function main() {
     throw new CompilationError([jsonResult.error])
   }
 
-  const result = ts.parseJsonConfigFileContent(jsonResult.config, {
-    readDirectory: ts.sys.readDirectory
-  }, basePath)
+  const result = ts.parseJsonConfigFileContent(jsonResult.config, ts.sys, basePath)
   checkErrors(result.errors)
 
   await compile(result, jsonResult.config)

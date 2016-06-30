@@ -55,6 +55,8 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
     }
 
     baseName += relativeOutDir
+
+    const parentDir = name.includes("/") ? `${baseName}/${path.dirname(name)}` : baseName
     if (name !== "index") {
       sourceModuleId += '/' + name
     }
@@ -73,9 +75,14 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
         return '';
       }
       else if (node.kind === ts.SyntaxKind.StringLiteral && (node.parent.kind === ts.SyntaxKind.ExportDeclaration || node.parent.kind === ts.SyntaxKind.ImportDeclaration)) {
-        const text = (<ts.StringLiteralTypeNode> node).text;
+        const text = (<ts.StringLiteralTypeNode> node).text
         if (text.charAt(0) === '.') {
-          return ' "' + baseName + "/" + text.substring(2) + '"'
+          if (text.charAt(1) === '.') {
+            return ' "' + baseName + "/" + text.substring(3) + '"'
+          }
+          else {
+            return ' "' + parentDir + "/" + text.substring(2) + '"'
+          }
         }
       }
 
