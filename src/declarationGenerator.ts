@@ -61,7 +61,7 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
       sourceModuleId += '/' + name
     }
 
-    output.write('declare module \'' + sourceModuleId + '\' {' + eol + indent);
+    output.write(`declare module '${sourceModuleId}' {${eol}${indent}`);
 
     const content = processTree(declarationFile, (node) => {
       if (node.kind === ts.SyntaxKind.ExternalModuleReference) {
@@ -75,13 +75,13 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
         return '';
       }
       else if (node.kind === ts.SyntaxKind.StringLiteral && (node.parent.kind === ts.SyntaxKind.ExportDeclaration || node.parent.kind === ts.SyntaxKind.ImportDeclaration)) {
-        const text = (<ts.StringLiteralTypeNode> node).text
+        const text = (<ts.LiteralLikeNode> node).text
         if (text.charAt(0) === '.') {
           if (text.charAt(1) === '.') {
-            return ' "' + baseName + "/" + text.substring(3) + '"'
+            return ` "${baseName}/${text.substring(3)}"`
           }
           else {
-            return ' "' + parentDir + "/" + text.substring(2) + '"'
+            return ` "${parentDir}/${text.substring(2)}"`
           }
         }
       }
