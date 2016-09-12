@@ -17,6 +17,8 @@ const filenameToMid: (filename: string) => string = (function () {
 })();
 
 export async function generateDeclarationFile(moduleName: string, declarationFiles: Array<ts.SourceFile>, compilerOptions: ts.CompilerOptions, out: string, basePath: string): Promise<any> {
+  const fileNameToModuleId: any = {}
+
   const relativeOutDir = path.relative(basePath, compilerOptions.outDir)
 
   await mkdirs(path.dirname(out))
@@ -42,7 +44,8 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
 
     let sourceModuleId: string
     let baseName = ""
-    const name = declarationFile.fileName.slice(0, -5).replace(/\//g, '/').substring(compilerOptions.outDir.length + 1)
+    const fileNameWithoutExt = declarationFile.fileName.slice(0, -5).replace(/\\/g, "/")
+    const name = fileNameWithoutExt.substring(compilerOptions.outDir.length + 1)
     if (moduleName) {
       baseName = moduleName + '/'
       sourceModuleId = moduleName
@@ -61,7 +64,8 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
       sourceModuleId += '/' + name
     }
 
-    output.write(`declare module '${sourceModuleId}' {${eol}${indent}`);
+    output.write(`declare module '${sourceModuleId}' {${eol}${indent}`)
+    fileNameToModuleId[fileNameWithoutExt] = sourceModuleId
 
     const content = processTree(declarationFile, (node) => {
       if (node.kind === ts.SyntaxKind.ExternalModuleReference) {
@@ -72,12 +76,17 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
         }
       }
       else if (node.kind === ts.SyntaxKind.DeclareKeyword) {
-        return '';
+        return ''
       }
       else if (node.kind === ts.SyntaxKind.StringLiteral && (node.parent.kind === ts.SyntaxKind.ExportDeclaration || node.parent.kind === ts.SyntaxKind.ImportDeclaration)) {
         const text = (<ts.LiteralLikeNode> node).text
+
         if (text.charAt(0) === '.') {
           if (text.charAt(1) === '.') {
+            const m = fileNameToModuleId[path.resolve(path.dirname(declarationFile.fileName), text).replace(/\\/g, "/")]
+            if (m != null) {
+              return ` "${m}"`
+            }
             return ` "${baseName}/${text.substring(3)}"`
           }
           else {
