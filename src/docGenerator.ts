@@ -22,6 +22,7 @@ export function generateDocs(program: ts.Program): string {
           const interfaceDescriptor = {
             name: interfaceName,
             description: interfaceDescription,
+            sourceFile: sourceFile.fileName,
           }
 
           let nameToProperty = topicToProperties.get(interfaceDescriptor)
@@ -83,7 +84,7 @@ export async function writeDocFile(docOutFile: string, content: string): Promise
       return outputFile(docOutFile, existingContent.substring(0, start + startMarker.length) + "\n" + content + "\n" + existingContent.substring(end))
     }
   }
-  console.log("Write doc to " + docOutFile)
+  console.log(`Write doc to ${docOutFile}`)
 }
 
 function stripIndent(str: string): string {
@@ -103,7 +104,34 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     return src.includes("\n") ? md.render(src).trim().replace(/\n/g, " ") : src
   }
 
-  topicToProperties.forEach((nameToProperty, interfaceDescriptor) => {
+  function headerWeight(text: string): number {
+    let weight = 0
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] == "#") {
+        weight += 1
+      }
+      else {
+        break
+      }
+    }
+    return weight
+  }
+
+  let keys = Array.from(topicToProperties.keys())
+  keys.sort(function (a, b) {
+    const n1 = a.description
+    const n2 = b.description
+
+    const hDiff = headerWeight(n1) - headerWeight(n2)
+    if (hDiff != 0) {
+      return hDiff
+    }
+
+    return n1.localeCompare(n2)
+  })
+
+  for (let interfaceDescriptor of keys) {
+    const nameToProperty = topicToProperties.get(interfaceDescriptor)
     result += `\n${anchor(interfaceDescriptor.name)}\n${interfaceDescriptor.description}\n`
     if (interfaceDescriptor.description.includes("\n")) {
       result += "\n"
@@ -112,7 +140,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     result += "| Name | Description\n"
     result += "| --- | ---"
     nameToProperty.forEach((descriptor, propertyName) => {
-      var bold = descriptor.isOptional ? "" : "**"
+      let bold = descriptor.isOptional ? "" : "**"
       result += `\n| ${bold}${propertyName}${bold} | `
 
       //  put anchor in the text because if multiline, name will be aligned vertically and on on navigation top of the text will be out of screen
@@ -123,7 +151,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     })
 
     result += "\n"
-  })
+  }
   return result
 }
 
@@ -134,6 +162,7 @@ function anchor(link: string) {
 export class InterfaceDescriptor {
   name: string
   description: string
+  sourceFile: string
 }
 
 export class PropertyDescriptor {
