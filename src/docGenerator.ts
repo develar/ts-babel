@@ -12,17 +12,20 @@ export function generateDocs(program: ts.Program): string {
     if (!sourceFile.isDeclarationFile) {
       for (let statement of sourceFile.statements) {
         if (statement.kind === ts.SyntaxKind.InterfaceDeclaration) {
-          const interfaceDescription = getComment(statement)
-          if (interfaceDescription == null) {
+          const description = getComment(statement)
+          if (description == null) {
             continue
           }
+
+          const lineBreakIndex = description.indexOf("\n")
+          const header = description.substring(0, lineBreakIndex == -1 ? description.length : lineBreakIndex).replace(/`/g, "")
 
           const interfaceDeclaration = <ts.InterfaceDeclaration>statement
           const interfaceName = (<ts.Identifier>interfaceDeclaration.name).text
           const interfaceDescriptor = {
             name: interfaceName,
-            description: interfaceDescription,
-            sourceFile: sourceFile.fileName,
+            description: description,
+            header: header,
           }
 
           let nameToProperty = topicToProperties.get(interfaceDescriptor)
@@ -104,8 +107,39 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     return src.includes("\n") ? md.render(src).trim().replace(/\n/g, " ") : src
   }
 
+  const keys = Array.from(topicToProperties.keys())
+
+  let w = 0
+  let subW = 0
+  const topLevelKeys = new Map<string, number>()
+  for (let interfaceDescriptor of keys) {
+    const header = interfaceDescriptor.header
+    if (header.startsWith("# ")) {
+      // # Development `package.json`
+      if (!topLevelKeys.has(header)) {
+        topLevelKeys.set(header, w += 1000)
+      }
+    }
+    else {
+      //  ### .build.mac
+      let key = header.split(".")[1]
+      if (!topLevelKeys.has(key)) {
+        topLevelKeys.set(key, subW += 100000)
+      }
+    }
+  }
+
   function headerWeight(text: string): number {
     let weight = 0
+
+    for (let k of topLevelKeys.keys()) {
+      //  ## `.build`
+      if (text.endsWith(`.${k}`) || text.includes(`.${k}.`)) {
+        weight = topLevelKeys.get(k)
+        break
+      }
+    }
+
     for (let i = 0; i < text.length; i++) {
       if (text[i] == "#") {
         weight += 1
@@ -117,10 +151,9 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     return weight
   }
 
-  let keys = Array.from(topicToProperties.keys())
   keys.sort(function (a, b) {
-    const n1 = a.description
-    const n2 = b.description
+    const n1 = a.header
+    const n2 = b.header
 
     const hDiff = headerWeight(n1) - headerWeight(n2)
     if (hDiff != 0) {
@@ -129,6 +162,25 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
 
     return n1.localeCompare(n2)
   })
+
+  // toc
+  for (let interfaceDescriptor of keys) {
+    let header = interfaceDescriptor.header
+
+    for (let i = 0; i < header.length; i++) {
+      if (header[i] != "#") {
+        if (i > 0) {
+          result += "  ".repeat(i)
+        }
+        result += "* "
+
+        header = `[${header.substring(i).trim()}](#${interfaceDescriptor.name})`
+        break
+      }
+    }
+
+    result += header + "\n"
+  }
 
   for (let interfaceDescriptor of keys) {
     const nameToProperty = topicToProperties.get(interfaceDescriptor)
@@ -161,8 +213,8 @@ function anchor(link: string) {
 
 export class InterfaceDescriptor {
   name: string
+  header: string
   description: string
-  sourceFile: string
 }
 
 export class PropertyDescriptor {
