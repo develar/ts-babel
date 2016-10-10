@@ -64,7 +64,11 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
       sourceModuleId += '/' + name
     }
 
-    output.write(`declare module '${sourceModuleId}' {${eol}${indent}`)
+    if (declarationFile.fileName.endsWith("main.d.ts")) {
+      sourceModuleId = moduleName
+    }
+
+    output.write(`declare module "${sourceModuleId}" {${eol}${indent}`)
     fileNameToModuleId[fileNameWithoutExt] = sourceModuleId
 
     const content = processTree(declarationFile, (node) => {
