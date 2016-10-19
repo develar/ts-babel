@@ -15,7 +15,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "files": [
-    "typings/main/ambient/node/node.d.ts",
     "node_modules/fs-extra-p/index.d.ts",
     "node_modules/fs-extra-p/bluebird.d.ts",
     "typings/babel.d.ts",
@@ -26,5 +25,8 @@
     "src/declarationGenerator.ts",
     "src/docGenerator.ts",
     "src/awaiter.ts"
+  ],
+  "include": [
+    "node_modules/@types/**/*.d.ts"
   ]
 }

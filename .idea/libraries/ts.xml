@@ -1,11 +1,7 @@
 <component name="libraryTable">
   <library name="ts" type="javaScript">
-    <properties>
-      <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/node_modules/typescript/lib/typescript.d.ts" />
-      </sourceFilesUrls>
-    </properties>
     <CLASSES>
+      <root url="file://$PROJECT_DIR$/node_modules/typescript/lib/typescript.d.ts" />
       <root url="file://$PROJECT_DIR$/node_modules/typescript/lib/typescript.d.ts" />
     </CLASSES>
     <JAVADOC />

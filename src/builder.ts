@@ -9,13 +9,23 @@ import { generateDocs, writeDocFile } from "./docGenerator"
 //noinspection JSUnusedLocalSymbols
 const __awaiter = require("./awaiter")
 
-const basePath = process.argv.length === 3 ?  path.resolve(process.argv[2]) : process.cwd()
-const tsConfigPath = path.join(basePath, "tsconfig.json")
+async function main() {
+  const paths = process.argv.slice(2)
+  if (paths.length == 0) {
+    paths.push(process.cwd())
+  }
 
-main()
-  .catch(error => {
-    if (error instanceof CompilationError) {
-      for (let diagnostic of error.errors) {
+  for (let basePath of paths) {
+    try {
+      console.log(`Build ${basePath}`)
+      await build(basePath)
+    }
+    catch (e) {
+      if (!(e instanceof CompilationError)) {
+        throw e
+      }
+
+      for (let diagnostic of e.errors) {
         if (diagnostic.file == null) {
           console.log(diagnostic.messageText)
           continue
@@ -25,14 +35,20 @@ main()
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
         console.log(`${diagnostic.file.fileName} (${location.line + 1},${location.character + 1}): ${message}`)
       }
+      process.exit(-1)
+      return
     }
-    else {
-      console.error(error.stack || error.message || error)
-    }
+  }
+}
+
+main()
+  .catch(error => {
+    console.error(error.stack || error.message || error)
     process.exit(-1)
   })
 
-async function main() {
+async function build(basePath: string) {
+  const tsConfigPath = path.join(basePath, "tsconfig.json")
   const jsonResult = ts.parseConfigFileTextToJson(tsConfigPath, await readFile(tsConfigPath, "utf8"))
   if (jsonResult.error != null) {
     throw new CompilationError([jsonResult.error])
@@ -41,10 +57,10 @@ async function main() {
   const result = ts.parseJsonConfigFileContent(jsonResult.config, ts.sys, basePath)
   checkErrors(result.errors)
 
-  await compile(result, jsonResult.config)
+  await compile(basePath, result, jsonResult.config)
 }
 
-async function compile(config: ts.ParsedCommandLine, tsConfig: any) {
+async function compile(basePath: string, config: ts.ParsedCommandLine, tsConfig: any) {
   const compilerOptions = config.options
   const declarationConfig: any = tsConfig.declaration
 
