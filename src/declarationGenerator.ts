@@ -24,7 +24,7 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
   await mkdirs(path.dirname(out))
 
   const eol = "\n"
-  const indent = "  "
+  const indent: string = "  "
   const output = createWriteStream(out, {mode: parseInt('644', 8)})
   return new BluebirdPromise<void>(async (resolve, reject) => {
     output.on('close', resolve)
@@ -69,7 +69,7 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
     }
 
     output.write(`declare module "${sourceModuleId}" {${eol}${indent}`)
-    fileNameToModuleId[fileNameWithoutExt] = sourceModuleId
+    fileNameToModuleId[path.resolve(fileNameWithoutExt).replace(/\\/g, "/")] = sourceModuleId
 
     const content = processTree(declarationFile, (node) => {
       if (node.kind === ts.SyntaxKind.ExternalModuleReference) {
@@ -104,7 +104,7 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
 
     let prev = content.replace(new RegExp(eol + '(?!' + eol + '|$)', 'g'), '$&' + indent);
     prev = prev.replace(/;/g, '')
-    if (indent != '    ') {
+    if (indent != "    ") {
       prev = prev.replace(/    /g, indent)
     }
 
@@ -132,7 +132,7 @@ function processTree(sourceFile: ts.SourceFile, replacer: (node: ts.Node) => str
   function visit(node: ts.Node) {
     readThrough(node);
 
-    if (node.flags & ts.NodeFlags.Private) {
+    if (node.flags & ts.ModifierFlags.Private) {
       // skip private nodes
       skip(node)
       return
