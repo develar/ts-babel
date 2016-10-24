@@ -33,7 +33,7 @@ async function main() {
 
         const location = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
-        console.log(`${diagnostic.file.fileName} (${location.line + 1},${location.character + 1}): ${message}`)
+        console.log(`${diagnostic.file.fileName} (${location.line + 1}, ${location.character + 1}): ${message}`)
       }
       process.exit(-1)
       return
