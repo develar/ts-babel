@@ -16,7 +16,7 @@
   },
   "files": [
     "node_modules/fs-extra-p/index.d.ts",
-    "node_modules/fs-extra-p/bluebird.d.ts",
+    "node_modules/bluebird-lst-c/index.d.ts",
     "typings/babel.d.ts",
     "typings/source-map-support.d.ts",
     "typings/markdown-it.d.ts",

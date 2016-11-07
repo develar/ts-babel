@@ -2,7 +2,7 @@ import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "babel-core"
 import { readdir, ensureDir, unlink, outputFile, readFile, outputJson } from "fs-extra-p"
-import { Promise as BluebirdPromise } from "bluebird"
+import BluebirdPromise from "bluebird-lst-c"
 import { generateDeclarationFile } from "./declarationGenerator"
 import { generateDocs, writeDocFile } from "./docGenerator"
 

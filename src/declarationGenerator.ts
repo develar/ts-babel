@@ -1,6 +1,6 @@
 import { createWriteStream, mkdirs } from 'fs-extra-p'
 import * as path from 'path'
-import { Promise as BluebirdPromise } from "bluebird"
+import BluebirdPromise from "bluebird-lst-c"
 import * as ts from 'typescript'
 
 //noinspection JSUnusedLocalSymbols
