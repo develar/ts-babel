@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "babel-core"
@@ -100,48 +102,44 @@ async function compile(basePath: string, config: ts.ParsedCommandLine, tsConfig:
     }
   })
 
-  if (process.env.CI == null && tsConfig.docs != null) {
-    const docs = generateDocs(program)
-    if (docs.length !== 0) {
-      writeDocFile(path.resolve(basePath, tsConfig.docs), docs)
-    }
-  }
-
   checkErrors(emitResult.diagnostics)
   if (emitResult.emitSkipped) {
     throw new Error("Emit skipped")
   }
 
   if (declarationFiles.length > 0) {
-    for (let moduleName of Object.keys(declarationConfig)) {
+    for (const moduleName of Object.keys(declarationConfig)) {
       promises.push(generateDeclarationFile(moduleName, declarationFiles, compilerOptions, path.join(basePath, declarationConfig[moduleName]), basePath))
     }
   }
 
-  await BluebirdPromise.all(promises)
-
-  promises.length = 0
-  await removedOld(outDir, emittedFiles, promises)
-  await BluebirdPromise.all(promises)
-}
-
-async function removedOld(outDir: string, emittedFiles: Set<string>, promises: Array<Promise<any>>) {
-  const files = await readdir(outDir)
-  for (let file of files) {
-    if (file[0] !== "." && !file.endsWith(".d.ts")) {
-      // ts uses / regardless of OS
-      const fullPath = outDir + '/' +  file
-
-      if (!file.includes(".")) {
-        removedOld(fullPath, emittedFiles, promises)
-        continue
-      }
-
-      if (!emittedFiles.has(fullPath)) {
-        promises.push(unlink(fullPath))
-      }
+  if (process.env.CI == null && tsConfig.docs != null) {
+    const docs = generateDocs(program)
+    if (docs.length !== 0) {
+      promises.push(writeDocFile(path.resolve(basePath, tsConfig.docs), docs))
     }
   }
+
+  await BluebirdPromise.all(promises)
+  await removeOld(outDir, emittedFiles)
+}
+
+async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any> {
+  const files = await readdir(outDir)
+  await BluebirdPromise.map(files, file => {
+    if (file[0] !== "." && !file.endsWith(".d.ts") && file !== "__snapshots__") {
+      // ts uses / regardless of OS
+      const fullPath = `${outDir}/${file}`
+
+      if (!file.includes(".")) {
+        return removeOld(fullPath, emittedFiles)
+      }
+      else if (!emittedFiles.has(fullPath)) {
+        return unlink(fullPath)
+      }
+    }
+    return null
+  })
 }
 
 function processCompiled(code: string, sourceMap: string, jsFileName: string, sourceMapFileName: string, promises: Array<Promise<any>>) {
