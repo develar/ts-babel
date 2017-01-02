@@ -64,7 +64,7 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
       sourceModuleId += '/' + name
     }
 
-    if (declarationFile.fileName.endsWith("main.d.ts") || (mainFile != null && fileNameWithoutExt.includes(`${fileNameWithoutExt}.js`))) {
+    if (declarationFile.fileName.endsWith("main.d.ts") || (mainFile != null && `${fileNameWithoutExt}.js`.includes(mainFile))) {
       sourceModuleId = moduleName
     }
 
