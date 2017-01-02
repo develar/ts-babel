@@ -3,7 +3,7 @@
 import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "babel-core"
-import { readdir, ensureDir, unlink, outputFile, readFile, outputJson } from "fs-extra-p"
+import { readdir, ensureDir, unlink, outputFile, readFile, outputJson, readJson } from "fs-extra-p"
 import BluebirdPromise from "bluebird-lst-c"
 import { generateDeclarationFile } from "./declarationGenerator"
 import { generateDocs, writeDocFile } from "./docGenerator"
@@ -108,8 +108,16 @@ async function compile(basePath: string, config: ts.ParsedCommandLine, tsConfig:
   }
 
   if (declarationFiles.length > 0) {
+    let packageData = null
+    try {
+      packageData = await readJson(path.join(basePath, "package.json"))
+    }
+    catch (e) {
+    }
+
+    const main = packageData == null ? null : packageData.main
     for (const moduleName of Object.keys(declarationConfig)) {
-      promises.push(generateDeclarationFile(moduleName, declarationFiles, compilerOptions, path.join(basePath, declarationConfig[moduleName]), basePath))
+      promises.push(generateDeclarationFile(moduleName, declarationFiles, compilerOptions, path.join(basePath, declarationConfig[moduleName]), basePath, main))
     }
   }
 

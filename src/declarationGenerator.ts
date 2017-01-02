@@ -16,7 +16,7 @@ const filenameToMid: (filename: string) => string = (function () {
   }
 })();
 
-export async function generateDeclarationFile(moduleName: string, declarationFiles: Array<ts.SourceFile>, compilerOptions: ts.CompilerOptions, out: string, basePath: string): Promise<any> {
+export async function generateDeclarationFile(moduleName: string, declarationFiles: Array<ts.SourceFile>, compilerOptions: ts.CompilerOptions, out: string, basePath: string, mainFile: string): Promise<any> {
   const fileNameToModuleId: any = {}
 
   const relativeOutDir = path.relative(basePath, compilerOptions.outDir)
@@ -64,7 +64,7 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
       sourceModuleId += '/' + name
     }
 
-    if (declarationFile.fileName.endsWith("main.d.ts")) {
+    if (declarationFile.fileName.endsWith("main.d.ts") || (mainFile != null && mainFile.endsWith(`${fileNameWithoutExt}.js`))) {
       sourceModuleId = moduleName
     }
 
