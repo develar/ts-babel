@@ -38,6 +38,6 @@
     "typescript"
   ],
   "devDependencies": {
-    "@types/node": "^6.0.55"
+    "@types/node": "^7.0.0"
   }
 }
