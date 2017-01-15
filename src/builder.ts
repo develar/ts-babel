@@ -6,7 +6,7 @@ import * as babel from "babel-core"
 import { readdir, ensureDir, unlink, outputFile, readFile, outputJson, readJson } from "fs-extra-p"
 import BluebirdPromise from "bluebird-lst-c"
 import { generateDeclarationFile } from "./declarationGenerator"
-import { generateDocs, writeDocFile } from "./docGenerator"
+import { generateDocs, writeDocFile, renderDocs } from "./docGenerator"
 
 //noinspection JSUnusedLocalSymbols
 const __awaiter = require("./awaiter")
@@ -122,10 +122,16 @@ async function compile(basePath: string, config: ts.ParsedCommandLine, tsConfig:
   }
 
   if (process.env.CI == null && tsConfig.docs != null) {
-    const docs = generateDocs(program)
+    const parsedDocs = generateDocs(program)
+    const docs = renderDocs(parsedDocs)
     if (docs.length !== 0) {
       promises.push(writeDocFile(path.resolve(basePath, tsConfig.docs), docs))
     }
+
+    // const jsStubs = writeToJs(program)
+    // if (jsStubs.length !== 0) {
+    //   promises.push(writeDocFile(path.resolve(basePath, "js-stubs.js"), jsStubs))
+    // }
   }
 
   await BluebirdPromise.all(promises)

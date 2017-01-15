@@ -5,76 +5,81 @@ import markdown = require("markdown-it")
 //noinspection JSUnusedLocalSymbols
 const __awaiter = require("./awaiter")
 
-export function generateDocs(program: ts.Program): string {
+export function generateDocs(program: ts.Program): Map<InterfaceDescriptor, Map<string, PropertyDescriptor>> {
   const topicToProperties = new Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>()
 
-  for (let sourceFile of program.getSourceFiles()) {
-    if (!sourceFile.isDeclarationFile) {
-      for (let statement of sourceFile.statements) {
-        if (statement.kind === ts.SyntaxKind.InterfaceDeclaration) {
-          const description = getComment(statement)
-          if (description == null) {
-            continue
-          }
-
-          const lineBreakIndex = description.indexOf("\n")
-          const header = description.substring(0, lineBreakIndex == -1 ? description.length : lineBreakIndex).replace(/`/g, "")
-
-          const interfaceDeclaration = <ts.InterfaceDeclaration>statement
-          const interfaceName = (<ts.Identifier>interfaceDeclaration.name).text
-          const interfaceDescriptor = {
-            name: interfaceName,
-            description: description,
-            header: header,
-          }
-
-          let nameToProperty = topicToProperties.get(interfaceDescriptor)
-          for (let member of interfaceDeclaration.members) {
-            if (member.kind === ts.SyntaxKind.PropertySignature) {
-              const comment = getComment(member)
-              if (comment != null) {
-                if (nameToProperty == null) {
-                  nameToProperty = new Map<string, PropertyDescriptor>()
-                  topicToProperties.set(interfaceDescriptor, nameToProperty)
-                }
-                const symbol: ts.Symbol = (<any>member).symbol
-                nameToProperty.set((<ts.Identifier>member.name).text, new PropertyDescriptor(interfaceName, comment, symbol != null && (symbol.flags & ts.SymbolFlags.Optional) !== 0))
-              }
-            }
-          }
-        }
-      }
+  for (const sourceFile of program.getSourceFiles()) {
+    if (sourceFile.isDeclarationFile) {
+      continue
     }
 
-    function getComment(node: ts.Node): string {
-      const leadingCommentRanges = ts.getLeadingCommentRanges(sourceFile.text, node.pos)
-      if (leadingCommentRanges == null || leadingCommentRanges.length === 0) {
-        return null
-      }
-      else {
-        const commentRange = leadingCommentRanges[0]
-        if (sourceFile.text[commentRange.pos] == "/" && sourceFile.text[commentRange.pos + 1] == "/") {
-          return null
+    for (const statement of sourceFile.statements) {
+      if (statement.kind === ts.SyntaxKind.InterfaceDeclaration) {
+        const description = getComment(statement, sourceFile)
+        if (description == null) {
+          continue
         }
-        else {
-          const isTwo = sourceFile.text[commentRange.pos + 2] == "*"
-          return stripIndent(sourceFile.text.slice(commentRange.pos + (isTwo ? 3 : 2), commentRange.end - "*/".length)).trim()
+
+        const lineBreakIndex = description.indexOf("\n")
+        const header = description.substring(0, lineBreakIndex == -1 ? description.length : lineBreakIndex).replace(/`/g, "")
+
+        const interfaceDeclaration = <ts.InterfaceDeclaration>statement
+        const interfaceName = (<ts.Identifier>interfaceDeclaration.name).text
+        const interfaceDescriptor = {
+          name: interfaceName,
+          description: description,
+          header: header,
+        }
+
+        let nameToProperty = topicToProperties.get(interfaceDescriptor)
+        for (const member of interfaceDeclaration.members) {
+          if (member.kind === ts.SyntaxKind.PropertySignature) {
+            let comment = getComment(member, sourceFile)
+            if (comment == null) {
+              continue
+            }
+
+            if (nameToProperty == null) {
+              nameToProperty = new Map<string, PropertyDescriptor>()
+              topicToProperties.set(interfaceDescriptor, nameToProperty)
+            }
+            const symbol: ts.Symbol = (<any>member).symbol
+
+
+            let isOptional = symbol != null && (symbol.flags & ts.SymbolFlags.Optional) !== 0
+            if (isOptional) {
+              comment = comment
+                .split("\n")
+                .map(it => it.trim())
+                .filter(it => {
+                  if (it.startsWith("@required")) {
+                    isOptional = false
+                    return false
+                  }
+                  return true
+                })
+                .join("\n")
+            }
+
+            nameToProperty.set((<ts.Identifier>member.name).text, new PropertyDescriptor(interfaceName, comment, isOptional))
+          }
         }
       }
     }
   }
 
-  return renderDocs(topicToProperties)
+  return topicToProperties
 }
 
 export async function writeDocFile(docOutFile: string, content: string): Promise<void> {
-  let existingContent: string = null
+  let existingContent
   try {
     existingContent = await readFile(docOutFile, "utf8")
   }
   catch (e) {
   }
 
+  console.log(`Write doc to ${docOutFile}`)
   if (existingContent == null) {
     return outputFile(docOutFile, content)
   }
@@ -86,8 +91,10 @@ export async function writeDocFile(docOutFile: string, content: string): Promise
     if (start != -1 && end != -1) {
       return outputFile(docOutFile, existingContent.substring(0, start + startMarker.length) + "\n" + content + "\n" + existingContent.substring(end))
     }
+    else {
+      return outputFile(docOutFile, content)
+    }
   }
-  console.log(`Write doc to ${docOutFile}`)
 }
 
 function stripIndent(str: string): string {
@@ -96,7 +103,72 @@ function stripIndent(str: string): string {
   return indent > 0 ? str.replace(new RegExp("^[ \\t]{" + indent + "}", "gm"), "") : str
 }
 
-function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>): string {
+function getComment(node: ts.Node, sourceFile: ts.SourceFile): string {
+  const leadingCommentRanges = ts.getLeadingCommentRanges(sourceFile.text, node.pos)
+  if (leadingCommentRanges == null || leadingCommentRanges.length === 0) {
+    return null
+  }
+  else {
+    const commentRange = leadingCommentRanges[0]
+    if (sourceFile.text[commentRange.pos] == "/" && sourceFile.text[commentRange.pos + 1] == "/") {
+      return null
+    }
+    else {
+      const isTwo = sourceFile.text[commentRange.pos + 2] == "*"
+      return stripIndent(sourceFile.text.slice(commentRange.pos + (isTwo ? 3 : 2), commentRange.end - "*/".length)).trim()
+    }
+  }
+}
+
+export function writeToJs(program: ts.Program): string {
+  let result = ""
+
+  for (const sourceFile of program.getSourceFiles()) {
+    if (!sourceFile.isDeclarationFile) {
+      continue
+    }
+
+    for (const statement of sourceFile.statements) {
+      if (statement.kind === ts.SyntaxKind.InterfaceDeclaration) {
+        let description = getComment(statement, sourceFile)
+        if (description == null) {
+          continue
+        }
+
+        if (description.startsWith("#")) {
+          const nextLineIndex = description.indexOf("\n")
+          if (nextLineIndex > 0) {
+            description = description.substring(nextLineIndex + 1).trim()
+          }
+        }
+
+        const interfaceDeclaration = <ts.InterfaceDeclaration>statement
+        const interfaceName = (<ts.Identifier>interfaceDeclaration.name).text
+
+        result += `/**\n  * ${description}\n  */\n`
+        result += `class ${interfaceName} {\n`
+
+        for (const member of interfaceDeclaration.members) {
+          if (member.kind === ts.SyntaxKind.PropertySignature) {
+            const comment = getComment(member, sourceFile)
+            if (comment != null) {
+              result += `  /**\n  * ${comment}\n  */\n`
+            }
+
+            const symbol: ts.Symbol = (<any>member).symbol
+            result += `  ${(<ts.Identifier>member.name).text}\n`
+            // nameToProperty.set((<ts.Identifier>member.name).text, new PropertyDescriptor(interfaceName, comment, symbol != null && (symbol.flags & ts.SymbolFlags.Optional) !== 0))
+          }
+        }
+
+        result += "}\n\n"
+      }
+    }
+  }
+  return result.trim()
+}
+
+export function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, PropertyDescriptor>>): string {
   let result = ""
   const md = markdown({
     typographer: true,
@@ -112,7 +184,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
   let w = 0
   let subW = 0
   const topLevelKeys = new Map<string, number>()
-  for (let interfaceDescriptor of keys) {
+  for (const interfaceDescriptor of keys) {
     const header = interfaceDescriptor.header
     if (header.startsWith("# ")) {
       // # Development `package.json`
@@ -164,13 +236,17 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
   })
 
   // toc
-  for (let interfaceDescriptor of keys) {
+  let tocHeaderOffset = 0
+  for (const interfaceDescriptor of keys) {
     let header = interfaceDescriptor.header
 
     for (let i = 0; i < header.length; i++) {
       if (header[i] != "#") {
         if (i > 0) {
-          result += "  ".repeat(i)
+          if (result === "") {
+            tocHeaderOffset = i
+          }
+          result += "  ".repeat(i - tocHeaderOffset)
         }
         result += "* "
 
@@ -182,7 +258,7 @@ function renderDocs(topicToProperties: Map<InterfaceDescriptor, Map<string, Prop
     result += header + "\n"
   }
 
-  for (let interfaceDescriptor of keys) {
+  for (const interfaceDescriptor of keys) {
     const nameToProperty = topicToProperties.get(interfaceDescriptor)
     result += `\n${anchor(interfaceDescriptor.name)}\n${interfaceDescriptor.description}\n`
     if (interfaceDescriptor.description.includes("\n")) {
