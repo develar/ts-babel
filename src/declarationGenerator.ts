@@ -71,6 +71,8 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
     output.write(`declare module "${sourceModuleId}" {${eol}${indent}`)
     fileNameToModuleId[path.resolve(fileNameWithoutExt).replace(/\\/g, "/")] = sourceModuleId
 
+    const mainBasename = path.basename(mainFile, ".js")
+
     const content = processTree(declarationFile, (node) => {
       if (node.kind === ts.SyntaxKind.ExternalModuleReference) {
         const expression = <ts.LiteralExpression> (<ts.ExternalModuleReference> node).expression;
@@ -94,6 +96,9 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
             return ` "${baseName}/${text.substring(3)}"`
           }
           else {
+            if (text.charAt(1) === '/' && text.substring(2) === mainBasename) {
+              return ` "${moduleName}"`
+            }
             return ` "${parentDir}/${text.substring(2)}"`
           }
         }
