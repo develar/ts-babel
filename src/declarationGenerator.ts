@@ -1,7 +1,8 @@
 import { createWriteStream, mkdirs } from 'fs-extra-p'
 import * as path from 'path'
-import BluebirdPromise from "bluebird-lst-c"
+import BluebirdPromise from "bluebird-lst"
 import * as ts from 'typescript'
+import { processTree } from "./JsDocGenerator"
 
 //noinspection JSUnusedLocalSymbols
 const __awaiter = require("./awaiter")
@@ -17,6 +18,8 @@ const filenameToMid: (filename: string) => string = (function () {
 })();
 
 export async function generateDeclarationFile(moduleName: string, declarationFiles: Array<ts.SourceFile>, compilerOptions: ts.CompilerOptions, out: string, basePath: string, mainFile: string): Promise<any> {
+  console.log(`Generating d.ts to ${out}`)
+
   const fileNameToModuleId: any = {}
 
   const relativeOutDir = path.relative(basePath, compilerOptions.outDir)
@@ -26,11 +29,11 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
   const eol = "\n"
   const indent: string = "  "
   const output = createWriteStream(out, {mode: parseInt('644', 8)})
-  return new BluebirdPromise<void>(async (resolve, reject) => {
-    output.on('close', resolve)
-    output.on('error', reject)
+  return await new BluebirdPromise<void>((resolve, reject) => {
+    output.on("finish", resolve)
+    output.on("error", reject)
 
-    for (let sourceFile of declarationFiles) {
+    for (const sourceFile of declarationFiles) {
       writeDeclaration(sourceFile, compilerOptions, relativeOutDir)
     }
 
@@ -119,52 +122,4 @@ export async function generateDeclarationFile(moduleName: string, declarationFil
     }
     output.write('}' + eol + eol)
   }
-}
-
-function processTree(sourceFile: ts.SourceFile, replacer: (node: ts.Node) => string): string {
-  let code = '';
-  let cursorPosition = 0;
-
-  function skip(node: ts.Node) {
-    cursorPosition = node.end;
-  }
-
-  function readThrough(node: ts.Node) {
-    code += sourceFile.text.slice(cursorPosition, node.pos);
-    cursorPosition = node.pos;
-  }
-
-  function visit(node: ts.Node) {
-    readThrough(node);
-
-    if (node.flags & ts.ModifierFlags.Private) {
-      // skip private nodes
-      skip(node)
-      return
-    }
-
-    if (node.kind === ts.SyntaxKind.ImportDeclaration && (<ts.ImportDeclaration>node).importClause == null) {
-      // ignore side effects only imports (like import "source-map-support/register")
-      skip(node)
-      return
-    }
-
-    const replacement = replacer(node)
-
-    if (replacement != null) {
-      code += replacement;
-      skip(node);
-    }
-    else {
-      if (node.kind === ts.SyntaxKind.ClassDeclaration || node.kind === ts.SyntaxKind.InterfaceDeclaration || node.kind === ts.SyntaxKind.FunctionDeclaration) {
-        code += "\n"
-      }
-      ts.forEachChild(node, visit);
-    }
-  }
-
-  visit(sourceFile);
-  code += sourceFile.text.slice(cursorPosition);
-
-  return code;
 }

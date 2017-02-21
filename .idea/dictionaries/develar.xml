@@ -2,6 +2,8 @@
   <dictionary name="develar">
     <words>
       <w>sourcemaps</w>
+      <w>transpilator</w>
+      <w>transpile</w>
     </words>
   </dictionary>
 </component>

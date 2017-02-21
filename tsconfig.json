@@ -16,17 +16,14 @@
   },
   "files": [
     "node_modules/fs-extra-p/index.d.ts",
-    "node_modules/bluebird-lst-c/index.d.ts",
+    "node_modules/bluebird-lst/index.d.ts",
     "typings/babel.d.ts",
     "typings/source-map-support.d.ts",
     "typings/markdown-it.d.ts",
-    "node_modules/typescript/lib/typescript.d.ts",
-    "src/builder.ts",
-    "src/declarationGenerator.ts",
-    "src/docGenerator.ts",
-    "src/awaiter.ts"
+    "node_modules/typescript/lib/typescript.d.ts"
   ],
   "include": [
-    "node_modules/@types/**/*.d.ts"
+    "node_modules/@types/**/*.d.ts",
+    "src/*.ts"
   ]
 }

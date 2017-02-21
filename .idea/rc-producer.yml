@@ -1,0 +1,11 @@
+- &defaults
+  files: ["test/**/*", "!**/fixtures/**/*"]
+  script: "node_modules/jest-cli/bin/jest.js"
+  scriptArgs: ["-i", &filePattern '--testPathPattern=[/\\]{1}${fileNameWithoutExt}\.\w+$']
+  rcName: "${fileNameWithoutExt}"
+
+-
+  <<: *defaults
+  lineRegExp: '^\s*(?:test|it)(?:\.\w+)?\("([^"'']+)'
+  scriptArgs: ["-i", "-t", "${0regExp}", *filePattern]
+  rcName: "${fileNameWithoutExt}.${0}"
