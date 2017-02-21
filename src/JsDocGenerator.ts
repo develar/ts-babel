@@ -170,6 +170,25 @@ export class JsDocGenerator {
   }
 
   getTypeNamePath(type: ts.Type): string | null {
+    if (type.flags & ts.TypeFlags.Boolean) {
+      return "boolean"
+    }
+    if (type.flags & ts.TypeFlags.Void) {
+      return "void"
+    }
+    if (type.flags & ts.TypeFlags.Null) {
+      return "null"
+    }
+    if (type.flags & ts.TypeFlags.String) {
+      return "string"
+    }
+    if (type.flags & ts.TypeFlags.Number) {
+      return "number"
+    }
+    if (type.flags & ts.TypeFlags.Undefined) {
+      return "undefined"
+    }
+
     const symbol = type.symbol
     if (symbol == null || symbol.declarations == null || symbol.declarations.length === 0) {
       return null

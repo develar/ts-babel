@@ -41,12 +41,16 @@ export class JsDocRenderer {
     const tags = method.tags.slice()
 
     const paramNameToInfo = new Map<string, Tag>()
+    let returns: Tag | null
     if (parsed != null) {
       for (const tag of parsed.tags) {
         if (tag.title === "param") {
           if (tag.name != null) {
             paramNameToInfo.set(tag.name, tag)
           }
+        }
+        else if (tag.title === "returns" || tag.title === "return") {
+          returns = tag
         }
         else {
           tags.push(`@${tag.title} ${tag.description}`)
@@ -67,6 +71,17 @@ export class JsDocRenderer {
       text += ` ${name}`
       if (tag != null) {
         text += ` ${tag.description}`
+      }
+      tags.push(text)
+    }
+
+    const signature = this.generator.program.getTypeChecker().getSignatureFromDeclaration(method.node)
+    const returnType = this.generator.getTypeNamePath(signature.getReturnType())
+    // http://stackoverflow.com/questions/4759175/how-to-return-void-in-jsdoc
+    if (returnType !== "void") {
+      let text = `@returns {${returnType}}`
+      if (returns != null) {
+        text += ` ${returns.description}`
       }
       tags.push(text)
     }

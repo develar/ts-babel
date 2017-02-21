@@ -8,7 +8,15 @@ Map {
  * @param {Error} error
  * @param {module:publish-api.VersionInfo} info
  */
-foo() {}
+function foo() {}
+/**
+ * @returns {boolean}
+ */
+function bool() {}
+/**
+ * @returns {number}
+ */
+function num() {}
 ",
   ],
 }
