@@ -1,5 +1,5 @@
 import * as ts from "typescript"
-import { JsDocGenerator, MethodDescriptor } from "./JsDocGenerator"
+import { JsDocGenerator, MethodDescriptor, Property } from "./JsDocGenerator"
 import { parse as parseJsDoc, Tag } from "doctrine"
 
 export class JsDocRenderer {
@@ -7,6 +7,33 @@ export class JsDocRenderer {
   currentSourceFile: ts.SourceFile
 
   constructor(private readonly generator: JsDocGenerator) {
+  }
+
+  description(node: ts.Node): string {
+    let description = this.getComment(node)
+    // remove: ### `linux`
+    if (description != null && description.startsWith("#")) {
+      const nextLineIndex = description.indexOf("\n")
+      let charIndex = description.indexOf("`")
+      charIndex = description.indexOf("`", charIndex + 1)
+      if (charIndex < nextLineIndex) {
+        description = description.substring(charIndex + 2)
+      }
+    }
+
+    if (description != null) {
+      return `${parseJsDoc(description, {unwrap: true}).description}\n`
+    }
+
+    return ""
+  }
+
+  normalizeDescription(comment: string) {
+    return this.indent + " * " + comment
+      .split("\n")
+      .map(it => it.trim())
+      .filter(it => it != "*/" && it.length > 0)
+      .join(`\n${this.indent} * `)
   }
 
   formatComment(node: ts.Node, tags: Array<string>, description?: string): string {
@@ -17,7 +44,7 @@ export class JsDocRenderer {
     if (description == null) {
       const comment = this.getComment(node)
       if (comment != null) {
-        result += `${indent} ${comment.split("\n").map(it => it.trim()).filter(it => it != "*/").join(`\n${indent} `)}\n`
+        result += `${this.normalizeDescription(comment)}\n`
       }
     }
     else if (description.length > 0) {
@@ -107,5 +134,20 @@ export class JsDocRenderer {
       return sourceFile.text.slice(commentRange.pos + 3, commentRange.end).trim()
     }
     return null
+  }
+
+  renderProperties(properties: Array<Property>): string {
+    let result = ""
+    for (const p of properties) {
+      result += ` * @property { ${p.types} } ${p.name}`
+
+      const description = this.getComment(p.node)
+      if (description != null) {
+        result += ` ${parseJsDoc(description, {unwrap: true}).description}`
+      }
+      result += "\n"
+    }
+
+    return result
   }
 }

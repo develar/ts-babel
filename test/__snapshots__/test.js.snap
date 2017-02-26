@@ -7,6 +7,7 @@ Map {
  * @param {Electron:RequestOptions} options
  * @param {Error} error
  * @param {module:publish-api.VersionInfo} info
+ * @param {\\"foo\\" | \\"bar\\"} name
  */
 function foo() {}
 /**

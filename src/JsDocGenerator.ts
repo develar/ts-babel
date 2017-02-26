@@ -20,7 +20,7 @@ export async function generateAndWrite(basePath: string, config: ts.ParsedComman
 
   const out = path.resolve(basePath, tsConfig.jsdoc)
   console.log(`Generating JSDoc to ${out}`)
-  await emptyDir(tsConfig.jsdoc)
+  await emptyDir(out)
 
   for (const [moduleId, contents] of generator.moduleNameToResult.entries()) {
     await writeFile(path.join(out, moduleId.replace(/\//g, "-") + ".js"), `/** 
@@ -111,7 +111,6 @@ export class JsDocGenerator {
 
     const content = processTree(sourceFile, (node) => {
       if (node.kind === ts.SyntaxKind.InterfaceDeclaration || node.kind === ts.SyntaxKind.ClassDeclaration) {
-        this.renderer.indent = "  "
         return this.renderClassOrInterface(node)
       }
       else if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
@@ -142,7 +141,11 @@ export class JsDocGenerator {
     if (node.kind === ts.SyntaxKind.UnionType) {
       const typeNames: Array<string> = []
       for (const type of (<ts.UnionType>(<any>node)).types) {
-        typeNames.push(this.getTypeNamePathByNode(<any>type))
+        const name = this.getTypeNamePathByNode(<any>type)
+        if (name == null) {
+          throw new Error("cannot get name for " + node.getText(node.getSourceFile()))
+        }
+        typeNames.push(name)
       }
       return typeNames.join(" | ")
     }
@@ -163,6 +166,10 @@ export class JsDocGenerator {
     }
     else if (node.kind === ts.SyntaxKind.UndefinedKeyword) {
       return "undefined"
+    }
+    else if (node.kind === ts.SyntaxKind.LiteralType) {
+      const text = (<ts.LiteralLikeNode>(<any>(<ts.LiteralTypeNode>node).literal)).text
+      return `"${text}"`
     }
 
     const type = this.program.getTypeChecker().getTypeAtLocation(node)
@@ -278,58 +285,46 @@ export class JsDocGenerator {
   }
 
   private renderClassOrInterface(node: ts.Node): string {
-    let description = this.renderer.getComment(node)
+    this.renderer.indent = ""
 
     const flags = ts.getCombinedModifierFlags(node)
     if (!(flags & ts.ModifierFlags.Export)) {
       return ""
     }
 
-    // remove: ### `linux`
-    if (description != null && description.startsWith("#")) {
-      const nextLineIndex = description.indexOf("\n")
-      let charIndex = description.indexOf("`")
-      charIndex = description.indexOf("`", charIndex + 1)
-      if (charIndex < nextLineIndex) {
-        description = " * " + description.substring(charIndex + 2)
-      }
-    }
-
     const nodeDeclaration = <ts.InterfaceDeclaration>node
     const className = (<ts.Identifier>nodeDeclaration.name).text
 
     let result = "/** \n"
+    result += this.renderer.description(node)
+
     if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
-      result += ` * @interface ${className}\n`
+      result += ` * @interface ${this.computeTypePath()}.${className}\n`
     }
-    else {
-      const clazz = <ts.ClassDeclaration>node
-      if (clazz.heritageClauses != null) {
-        for (const heritageClause of clazz.heritageClauses) {
-          if (heritageClause.types != null) {
-            for (const type of heritageClause.types) {
-              const typeNamePath = this.getTypeNamePathByNode(type)
-              if (typeNamePath != null) {
-                result += ` * @extends ${typeNamePath}\n`
-              }
+
+    const clazz = <ts.ClassDeclaration>node
+    if (clazz.heritageClauses != null) {
+      for (const heritageClause of clazz.heritageClauses) {
+        if (heritageClause.types != null) {
+          for (const type of heritageClause.types) {
+            const typeNamePath = this.getTypeNamePathByNode(type)
+            if (typeNamePath != null) {
+              result += ` * @extends ${typeNamePath}\n`
             }
           }
         }
       }
     }
 
-    if (description == null) {
-      result += " */\n"
-    }
-    else {
-      result += `${description}`
-    }
-
-    result += `export class ${className} {\n`
-
+    this.renderer.indent = "  "
     const methods: Array<MethodDescriptor> = []
+    const properties: Array<Property> = []
     for (const member of nodeDeclaration.members) {
       if (member.kind === ts.SyntaxKind.PropertySignature) {
+        const p = this.describeProperty(<any>member)
+        if (p != null) {
+          properties.push(p)
+        }
       }
       else if (member.kind === ts.SyntaxKind.MethodDeclaration || member.kind === ts.SyntaxKind.MethodSignature) {
         const m = this.renderMethod(<any>member, className)
@@ -338,6 +333,11 @@ export class JsDocGenerator {
         }
       }
     }
+
+    result += this.renderer.renderProperties(properties)
+
+    result += " */\n"
+    result += `export class ${className} {\n`
 
     methods.sort((a, b) => {
       let weightA = a.isProtected ? 100 : 0
@@ -359,7 +359,17 @@ export class JsDocGenerator {
     return result
   }
 
-  private renderMethod(node: ts.SignatureDeclaration, className: string): MethodDescriptor {
+  private describeProperty(node: ts.SignatureDeclaration): Property | null {
+    const flags = ts.getCombinedModifierFlags(node)
+    if (flags & ts.ModifierFlags.Private) {
+      return null
+    }
+
+    const name = (<ts.Identifier>node.name).text
+    return {name, types: this.getTypeNamePathByNode(node.type), node}
+  }
+
+  private renderMethod(node: ts.SignatureDeclaration, className: string): MethodDescriptor | null {
     // node.flags doesn't report correctly for private methods
     const flags = ts.getCombinedModifierFlags(node)
     if (flags & ts.ModifierFlags.Private) {
@@ -437,6 +447,13 @@ export interface MethodDescriptor {
   tags: Array<string>
 
   isProtected?: boolean
+
+  node: ts.SignatureDeclaration
+}
+
+export interface Property {
+  name: string
+  types: string
 
   node: ts.SignatureDeclaration
 }
