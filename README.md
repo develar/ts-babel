@@ -20,3 +20,5 @@ In the `tsconfig.js` set `jsdoc` to path to output directory.
 ```
 "jsdoc": "jsdoc/out"
 ```
+
+Execute: `ts2jsdoc path-to-dir-with-tsconfig`
