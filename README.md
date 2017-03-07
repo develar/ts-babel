@@ -12,3 +12,11 @@ In the `tsconfig.js` set `declaration`:
 * `true` (will be generated to `compiler out/name from package.d.ts`) 
 * `path-to-d.ts`
 * Map of `module name` to `path-to-d.ts`
+
+## Generate JSDoc from TypeScript
+
+In the `tsconfig.js` set `jsdoc` to path to output directory.
+
+```
+"jsdoc": "jsdoc/out"
+```

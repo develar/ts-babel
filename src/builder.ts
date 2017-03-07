@@ -123,7 +123,7 @@ async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any
 
 function processCompiled(code: string, sourceMap: string, jsFileName: string, sourceMapFileName: string, promises: Array<Promise<any>>) {
   const result = babel.transform(code, {
-    inputSourceMap: JSON.parse(sourceMap),
+    inputSourceMap: sourceMap == null ? null : JSON.parse(sourceMap),
     sourceMaps: true,
     filename: jsFileName,
   })
