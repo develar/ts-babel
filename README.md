@@ -13,12 +13,6 @@ In the `tsconfig.js` set `declaration`:
 * `path-to-d.ts`
 * Map of `module name` to `path-to-d.ts`
 
-## Generate JSDoc from TypeScript
+## Related
 
-In the `tsconfig.js` set `jsdoc` to path to output directory.
-
-```
-"jsdoc": "jsdoc/out"
-```
-
-Execute: `ts2jsdoc path-to-dir-with-tsconfig`
+* [Generate JSDoc from Typescript](https://github.com/develar/ts2jsdoc)

@@ -2,7 +2,7 @@ import { createWriteStream, mkdirs } from 'fs-extra-p'
 import * as path from 'path'
 import BluebirdPromise from "bluebird-lst"
 import * as ts from 'typescript'
-import { processTree } from "./JsDocGenerator"
+import { processTree } from "./util"
 
 //noinspection JSUnusedLocalSymbols
 const __awaiter = require("./awaiter")
