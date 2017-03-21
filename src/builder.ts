@@ -6,7 +6,6 @@ import * as babel from "babel-core"
 import { readdir, ensureDir, unlink, outputFile, outputJson, readJson } from "fs-extra-p"
 import BluebirdPromise from "bluebird-lst"
 import { generateDeclarationFile } from "./declarationGenerator"
-import { generateDocs, writeDocFile, renderDocs } from "./docGenerator"
 import { transpile, checkErrors } from "./util"
 
 //noinspection JSUnusedLocalSymbols
@@ -86,15 +85,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
       promises.push(generateDeclarationFile(moduleName, declarationFiles, compilerOptions, path.resolve(basePath, declarationConfig[moduleName]), basePath, main))
     }
   }
-
-  if (process.env.CI == null && tsConfig.docs != null) {
-    const parsedDocs = generateDocs(program)
-    const docs = renderDocs(parsedDocs)
-    if (docs.length !== 0) {
-      promises.push(writeDocFile(path.resolve(basePath, tsConfig.docs), docs))
-    }
-  }
-
+  
   await BluebirdPromise.all(promises)
   await removeOld(compilerOutDir, emittedFiles)
 })

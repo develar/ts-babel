@@ -19,7 +19,6 @@
     "node_modules/bluebird-lst/index.d.ts",
     "typings/babel.d.ts",
     "typings/source-map-support.d.ts",
-    "typings/markdown-it.d.ts",
     "node_modules/typescript/lib/typescript.d.ts"
   ],
   "include": [
