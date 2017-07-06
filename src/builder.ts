@@ -45,7 +45,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
     emittedFiles.add(fileName)
 
     if (fileName.endsWith(".js")) {
-      const sourceMapFileName = fileName + ".map"
+      const sourceMapFileName = `${fileName}.map`
       processCompiled(data, fileToSourceMap[sourceMapFileName], fileName, sourceMapFileName, promises)
     }
     else if (fileName.endsWith(".js.map")) {
@@ -97,7 +97,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
 async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any> {
   const files = await readdir(outDir)
   await BluebirdPromise.map(files, file => {
-    if (file[0] !== "." && !file.endsWith(".d.ts") && file !== "__snapshots__") {
+    if (file.endsWith(".js") || file.endsWith(".js.map")) {
       // ts uses / regardless of OS
       const fullPath = `${outDir}/${file}`
 
