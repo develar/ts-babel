@@ -1,5 +1,7 @@
 #! /usr/bin/env node
 
+require("v8-compile-cache")
+
 import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "babel-core"
@@ -85,7 +87,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
       promises.push(generateDeclarationFile(moduleName, declarationFiles, compilerOptions, path.resolve(basePath, declarationConfig[moduleName]), basePath, main))
     }
   }
-  
+
   await BluebirdPromise.all(promises)
   await removeOld(compilerOutDir, emittedFiles)
 })
