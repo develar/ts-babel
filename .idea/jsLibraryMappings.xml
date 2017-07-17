@@ -3,7 +3,7 @@
   <component name="JavaScriptLibraryMappings">
     <file url="file://$PROJECT_DIR$/src" libraries="{ts}" />
     <file url="PROJECT" libraries="{ts}" />
-    <includedPredefinedLibrary name="ECMAScript 6" />
     <includedPredefinedLibrary name="Node.js Core" />
+    <excludedPredefinedLibrary name=".../electron-builder/node_modules" />
   </component>
 </project>
