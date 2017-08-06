@@ -18,11 +18,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
 
   const compilerOptions = config.options
   let declarationConfig: any = tsConfig.declaration
-  if (declarationConfig === false) {
-    declarationConfig = null
-  }
-
-  if (declarationConfig != null) {
+  if (declarationConfig !== false) {
     compilerOptions.declaration = true
   }
 
@@ -55,6 +51,9 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
     }
     else if (declarationConfig != null) {
       declarationFiles.push(ts.createSourceFile(fileName, data, target, true))
+    }
+    else {
+      promises.push(outputFile(fileName, data))
     }
   })
 
