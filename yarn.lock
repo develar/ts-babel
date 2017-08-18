@@ -2,10 +2,6 @@
 # yarn lockfile v1
 
 
-"@types/chalk@^0.4.31":
-  version "0.4.31"
-  resolved "https://registry.yarnpkg.com/@types/chalk/-/chalk-0.4.31.tgz#a31d74241a6b1edbb973cf36d97a2896834a51f9"
-
 "@types/node@^8.0.24":
   version "8.0.24"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.24.tgz#06c580084d9add1fb40c1510ef0b448961246fb1"
@@ -32,7 +28,7 @@ babel-code-frame@^6.26.0:
     esutils "^2.0.2"
     js-tokens "^3.0.2"
 
-babel-core@^6.25.0, babel-core@^6.26.0:
+babel-core@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-core/-/babel-core-6.26.0.tgz#af32f78b31a6fcef119c87b0fd8d9753f03a0bb8"
   dependencies:
@@ -499,20 +495,20 @@ trim-right@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
 
-ts-babel@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/ts-babel/-/ts-babel-3.2.1.tgz#97ef0582e3da7d9f16e712d4ae2b39cd8be7a4fb"
+ts-babel@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/ts-babel/-/ts-babel-4.0.0.tgz#4735160b40bf9b0fa303e6423ab7b610703b36e7"
   dependencies:
-    babel-core "^6.25.0"
-    bluebird-lst "^1.0.2"
+    babel-core "^6.26.0"
+    bluebird-lst "^1.0.3"
     chalk "^2.1.0"
     fs-extra-p "^4.4.0"
-    source-map-support "^0.4.15"
+    source-map-support "^0.4.16"
     v8-compile-cache "^1.1.0"
 
 typescript@^2.4.2:
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.4.2.tgz#f8395f85d459276067c988aa41837a8f82870844"
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.5.0.tgz#60989e74cad93c28fe35f7f7b41fe9b205a25701"
 
 universalify@^0.1.0:
   version "0.1.1"
