@@ -3,15 +3,8 @@ But you have to do it because Node support ES6 features step by step and some fe
 
 So, [Babel](http://babeljs.io) is used to transform code.
 
-Run `ts-babel` to compile. Compiler options are taken automatically from your `tsconfig.json`. `filesGlob` must be specified.
+Run `ts-babel` to compile. Compiler options are taken automatically from your `tsconfig.json`.
 Specify [babel configuration](https://babeljs.io/docs/usage/babelrc/) in the `package.json`.
-
-## Generate Declarations (`d.ts`) 
-
-In the `tsconfig.js` set `declaration`:
-* `true` (will be generated to `compiler out/name from package.d.ts`) 
-* `path-to-d.ts`
-* Map of `module name` to `path-to-d.ts`
 
 ## Related
 

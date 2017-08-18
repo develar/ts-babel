@@ -1,9 +1,6 @@
-import * as ts from "typescript";
-import * as path from "path";
-import {readFile} from "fs-extra-p";
-
-//noinspection JSUnusedLocalSymbols
-const __awaiter = require("./awaiter")
+import * as ts from "typescript"
+import * as path from "path"
+import {readFile} from "fs-extra-p"
 
 export async function transpile(transpilator: (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) => Promise<any>) {
   const paths = process.argv.slice(2)
@@ -29,7 +26,7 @@ export async function transpilePaths(paths: Array<string>, transpilator: (basePa
           continue
         }
 
-        const location = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
+        const location = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!!)
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
         console.log(`${diagnostic.file.fileName} (${location.line + 1}, ${location.character + 1}): ${message}`)
       }
@@ -62,51 +59,4 @@ class CompilationError extends Error {
   constructor(public errors: Array<ts.Diagnostic>) {
     super("Compilation error")
   }
-}
-
-export function processTree(sourceFile: ts.SourceFile, replacer: (node: ts.Node) => string): string {
-  let code = '';
-  let cursorPosition = 0;
-
-  function skip(node: ts.Node) {
-    cursorPosition = node.end;
-  }
-
-  function readThrough(node: ts.Node) {
-    code += sourceFile.text.slice(cursorPosition, node.pos);
-    cursorPosition = node.pos;
-  }
-
-  function visit(node: ts.Node) {
-    readThrough(node);
-
-    if (node.flags & ts.ModifierFlags.Private) {
-      // skip private nodes
-      skip(node)
-      return
-    }
-
-    if (node.kind === ts.SyntaxKind.ImportDeclaration && (<ts.ImportDeclaration>node).importClause == null) {
-      // ignore side effects only imports (like import "source-map-support/register")
-      skip(node)
-      return
-    }
-
-    const replacement = replacer(node)
-    if (replacement != null) {
-      code += replacement
-      skip(node)
-    }
-    else {
-      if (node.kind === ts.SyntaxKind.ClassDeclaration || node.kind === ts.SyntaxKind.InterfaceDeclaration || node.kind === ts.SyntaxKind.FunctionDeclaration) {
-        code += "\n"
-      }
-      ts.forEachChild(node, visit)
-    }
-  }
-
-  visit(sourceFile)
-  code += sourceFile.text.slice(cursorPosition)
-
-  return code
 }

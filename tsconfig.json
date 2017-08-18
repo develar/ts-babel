@@ -1,28 +1,13 @@
 {
+  "extends": "./tsconfig-base.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "noImplicitAny": true,
-    "removeComments": true,
-    "outDir": "out",
-    "newLine": "LF",
-    "noResolve": true,
-    "noEmitOnError": true,
-    "inlineSources": true,
-    "sourceMap": true,
-    "noImplicitReturns": true,
-    "noEmitHelpers": true,
-    "noFallthroughCasesInSwitch": true
+    "outDir": "out"
   },
   "files": [
-    "node_modules/fs-extra-p/index.d.ts",
-    "node_modules/bluebird-lst/index.d.ts",
     "typings/babel.d.ts",
-    "typings/source-map-support.d.ts",
     "node_modules/typescript/lib/typescript.d.ts"
   ],
   "include": [
-    "node_modules/@types/**/*.d.ts",
     "src/*.ts"
   ]
 }
