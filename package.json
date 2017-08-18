@@ -29,7 +29,7 @@
     "@types/chalk": "^0.4.31",
     "@types/node": "^8.0.24",
     "babel-preset-ts-node4-bluebird": "^0.1.0",
-    "ts-babel": "^3.2.1",
+    "ts-babel": "^4.0.0",
     "typescript": "^2.4.2"
   },
   "peerDependencies": {
