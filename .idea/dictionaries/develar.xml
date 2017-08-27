@@ -2,6 +2,7 @@
   <dictionary name="develar">
     <words>
       <w>sourcemaps</w>
+      <w>toposort</w>
       <w>transpilator</w>
       <w>transpile</w>
     </words>

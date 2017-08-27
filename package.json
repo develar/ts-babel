@@ -1,7 +1,7 @@
 {
   "name": "ts-babel",
   "description": "Transform TypeScript compiler result using Babel to granular target control",
-  "version": "4.0.1",
+  "version": "4.1.4",
   "license": "MIT",
   "author": "Vladimir Krivosheev",
   "bin": {
@@ -25,9 +25,9 @@
     "v8-compile-cache": "^1.1.0"
   },
   "devDependencies": {
-    "@types/node": "^8.0.24",
+    "@types/node": "^8.0.25",
     "babel-preset-ts-node4-bluebird": "^0.1.0",
-    "ts-babel": "^4.0.1",
+    "ts-babel": "^4.1.3",
     "typescript": "^2.4.2"
   },
   "peerDependencies": {

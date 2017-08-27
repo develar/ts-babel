@@ -9,8 +9,6 @@ import BluebirdPromise from "bluebird-lst"
 import { transpile, checkErrors } from "./util"
 
 transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) => {
-  console.log(`Building ${basePath}`)
-
   const compilerOptions = config.options
   if (tsConfig.declaration !== false) {
     compilerOptions.declaration = true
@@ -61,15 +59,14 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
 
 async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any> {
   await BluebirdPromise.map(await readdir(outDir), file => {
-    if (file.endsWith(".js") || file.endsWith(".js.map") || file.endsWith(".d.ts")) {
-      // ts uses / regardless of OS
-      const fullPath = `${outDir}/${file}`
-      if (!file.includes(".")) {
-        return removeOld(fullPath, emittedFiles)
-      }
-      else if (!emittedFiles.has(fullPath)) {
-        return unlink(fullPath)
-      }
+    // ts uses / regardless of OS
+    const fullPath = `${outDir}/${file}`
+    if (!file.includes(".")) {
+      return removeOld(fullPath, emittedFiles)
+    }
+
+    if ((file.endsWith(".js") || file.endsWith(".js.map") || file.endsWith(".d.ts")) && !emittedFiles.has(fullPath)) {
+      return unlink(fullPath)
     }
     return null
   })
