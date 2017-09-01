@@ -14,7 +14,7 @@ module.exports = {
     [
       "transform-inline-imports-commonjs",
       {
-        excludeModules: ["path"]
+        excludeModules: ["path", "debug"]
       }
     ],
   ]
