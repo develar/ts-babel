@@ -21,7 +21,7 @@
     "babel-core": "^6.26.0",
     "bluebird-lst": "^1.0.3",
     "fs-extra-p": "^4.4.0",
-    "source-map-support": "^0.4.16",
+    "source-map-support": "^0.5.0",
     "v8-compile-cache": "^1.1.0"
   },
   "devDependencies": {
