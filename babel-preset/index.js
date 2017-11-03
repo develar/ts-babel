@@ -7,10 +7,6 @@ module.exports = {
         method: "coroutine"
       }
     ],
-    "transform-es2015-parameters",
-    "transform-es2015-spread",
-    "transform-es2015-destructuring",
-    "array-includes",
     [
       "transform-inline-imports-commonjs",
       {

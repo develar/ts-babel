@@ -29,7 +29,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
   const fileToSourceMap: any = {}
   const promises: Array<Promise<any>> = []
   const emittedFiles = new Set<string>()
-  const emitResult = program.emit(undefined, (fileName, data) => {
+  const emitResult = program.emit(undefined, (fileName: string, data: any) => {
     emittedFiles.add(fileName)
 
     if (fileName.endsWith(".js")) {

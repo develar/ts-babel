@@ -76,14 +76,14 @@ async function build(basePath: string, transpilator: (basePath: string, config: 
   await transpilator(basePath, result, jsonResult.config)
 }
 
-export function checkErrors(errors: Array<ts.Diagnostic>): void {
+export function checkErrors(errors: ReadonlyArray<ts.Diagnostic>): void {
   if (errors.length !== 0) {
     throw new CompilationError(errors)
   }
 }
 
 class CompilationError extends Error {
-  constructor(public errors: Array<ts.Diagnostic>) {
+  constructor(public errors: ReadonlyArray<ts.Diagnostic>) {
     super("Compilation error")
   }
 }
