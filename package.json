@@ -25,7 +25,7 @@
     "v8-compile-cache": "^1.1.0"
   },
   "devDependencies": {
-    "@types/node": "^8.0.47",
+    "@types/node": "^9.3.0",
     "babel-preset-ts-node6-bluebird": "^1.0.1",
     "ts-babel": "^4.1.7",
     "typescript": "^2.6.1"
