@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^8.0.47",
-    "babel-preset-ts-node6-bluebird": "^1.0.1",
+    "babel-preset-ts-node6-bluebird": "^2.0.0",
     "ts-babel": "^4.1.7",
     "typescript": "^2.6.1"
   },
