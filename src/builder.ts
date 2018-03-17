@@ -3,7 +3,7 @@
 require("v8-compile-cache")
 
 import * as ts from "typescript"
-import * as babel from "babel-core"
+import * as babel from "@babel/core"
 import { readdir, ensureDir, unlink, outputFile, outputJson } from "fs-extra-p"
 import BluebirdPromise from "bluebird-lst"
 import { transpile, checkErrors } from "./util"
@@ -79,7 +79,24 @@ function processCompiled(code: string, sourceMap: string, jsFileName: string, so
     filename: jsFileName,
   })
 
+  const match = code.match(regex)!
+  const sourceMapUrl = match[1] || match[2]
+
   promises.push(
-    outputFile(jsFileName, result.code),
+    outputFile(jsFileName, result.code.replace(regex, "") + "\n//# sourceMappingURL=" + sourceMapUrl),
     outputJson(sourceMapFileName, result.map))
 }
+
+const innerRegex = /[#@] sourceMappingURL=([^\s'"]*)/
+const regex = RegExp(
+  "(?:" +
+  "/\\*" +
+  "(?:\\s*\r?\n(?://)?)?" +
+  "(?:" + innerRegex.source + ")" +
+  "\\s*" +
+  "\\*/" +
+  "|" +
+  "//(?:" + innerRegex.source + ")" +
+  ")" +
+  "\\s*"
+)

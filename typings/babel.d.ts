@@ -1,4 +1,4 @@
-declare module "babel-core" {
+declare module "@babel/core" {
   interface TransformResult {
     code: string
     map: string
@@ -7,6 +7,6 @@ declare module "babel-core" {
   function transform(code: string, options: any): TransformResult
 
   interface OptionManager {
-    
+
   }
 }

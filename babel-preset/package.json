@@ -1,6 +1,6 @@
 {
   "name": "babel-preset-ts-node6-bluebird",
-  "version": "1.0.1",
+  "version": "2.0.1",
   "description": "Preset to compile Typescript using Babel for Node.js 6.0 (with bluebird)",
   "main": "index.js",
   "repository": "develar/ts-babel",
@@ -10,7 +10,11 @@
     "index.js"
   ],
   "dependencies": {
-    "babel-plugin-transform-async-to-module-method": "^6.24.1",
-    "babel-plugin-transform-inline-imports-commonjs": "^1.2.0"
+    "@babel/helper-plugin-utils": "^7.0.0-beta.42",
+    "@babel/plugin-transform-modules-commonjs": "^7.0.0-beta.42",
+    "babel-plugin-transform-async-to-module-method": "^7.0.0-beta.3"
+  },
+  "peerDependencies": {
+    "@babel/core": "^7.0.0-beta.42"
   }
 }

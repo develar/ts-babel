@@ -1,7 +1,7 @@
 {
   "name": "ts-babel",
   "description": "Transform TypeScript compiler result using Babel to granular target control",
-  "version": "4.1.8",
+  "version": "5.0.2",
   "license": "MIT",
   "author": "Vladimir Krivosheev",
   "bin": {
@@ -14,31 +14,29 @@
     "tsconfig-base.json"
   ],
   "scripts": {
-    "compile": "ts-babel",
-    "release": "ts-babel && npm publish"
+    "compile": "tsc -p .",
+    "release": "yarn compile && npm publish"
   },
   "dependencies": {
-    "babel-core": "^6.26.0",
+    "@babel/core": "^7.0.0-beta.42",
     "bluebird-lst": "^1.0.5",
-    "fs-extra-p": "^4.4.4",
-    "source-map-support": "^0.5.0",
-    "v8-compile-cache": "^1.1.0"
+    "fs-extra-p": "^4.5.2",
+    "source-map-support": "^0.5.4",
+    "v8-compile-cache": "^1.1.2"
   },
   "devDependencies": {
-    "@types/node": "^8.0.47",
-    "babel-preset-ts-node6-bluebird": "^1.0.1",
-    "ts-babel": "^4.1.7",
-    "typescript": "^2.6.1"
+    "@types/node": "^9.4.7",
+    "typescript": "^2.7.2"
   },
   "peerDependencies": {
-    "typescript": "^2.6.1"
+    "typescript": "^2.7.2"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/develar/ts-babel.git"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=8.10.0"
   },
   "keywords": [
     "babel",
