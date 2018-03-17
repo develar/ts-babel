@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/node": "^8.0.47",
     "babel-preset-ts-node6-bluebird": "^1.0.1",
-    "ts-babel": "^4.1.7",
+    "ts-babel": "^5.0.0",
     "typescript": "^2.6.1"
   },
   "peerDependencies": {
