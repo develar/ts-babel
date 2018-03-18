@@ -1,6 +1,6 @@
 {
   "name": "babel-preset-ts-node6-bluebird",
-  "version": "2.0.1",
+  "version": "2.0.4",
   "description": "Preset to compile Typescript using Babel for Node.js 6.0 (with bluebird)",
   "main": "index.js",
   "repository": "develar/ts-babel",

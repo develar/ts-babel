@@ -83,7 +83,7 @@ function processCompiled(code: string, sourceMap: string, jsFileName: string, so
   const sourceMapUrl = match[1] || match[2]
 
   promises.push(
-    outputFile(jsFileName, result.code.replace(regex, "") + "\n//# sourceMappingURL=" + sourceMapUrl),
+    outputFile(jsFileName, result.code.replace(regex, "") + `\n//# sourceMappingURL=${sourceMapUrl}`),
     outputJson(sourceMapFileName, result.map))
 }
 
