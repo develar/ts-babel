@@ -49,7 +49,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
     throw new Error("Emit skipped")
   }
 
-  await BluebirdPromise.all(promises)
+  await Promise.all(promises)
   await removeOld(compilerOutDir, emittedFiles)
 })
   .catch(error => {
@@ -73,11 +73,16 @@ async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any
 }
 
 function processCompiled(code: string, sourceMap: string, jsFileName: string, sourceMapFileName: string, promises: Array<Promise<any>>) {
-  const result = babel.transform(code, {
+  const options: any = {
     inputSourceMap: sourceMap == null ? null : JSON.parse(sourceMap),
     sourceMaps: true,
     filename: jsFileName,
-  })
+  }
+  if (process.env.BABEL_WORKAROUND) {
+    options.presets = ["babel-preset-ts-node6-bluebird"]
+    options.plugins = ["./scripts/babel-plugin-version-transform.js"]
+  }
+  const result = babel.transform(code, options)
 
   const match = code.match(regex)!
   const sourceMapUrl = match[1] || match[2]
