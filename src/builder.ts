@@ -82,6 +82,9 @@ function processCompiled(code: string, sourceMap: string, jsFileName: string, so
     options.presets = ["babel-preset-ts-node6-bluebird"]
     options.plugins = ["./scripts/babel-plugin-version-transform.js"]
   }
+  else if (process.env.BABEL_WORKAROUND2) {
+    options.presets = ["babel-preset-ts-node6-bluebird"]
+  }
   const result = babel.transform(code, options)
 
   const match = code.match(regex)!
