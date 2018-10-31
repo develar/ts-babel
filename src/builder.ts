@@ -3,6 +3,7 @@
 require("v8-compile-cache")
 
 import * as ts from "typescript"
+import * as path from "path"
 import * as babel from "@babel/core"
 import { readdir, ensureDir, unlink, outputFile, outputJson } from "fs-extra-p"
 import BluebirdPromise from "bluebird-lst"
@@ -19,7 +20,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
   const program = ts.createProgram(config.fileNames, compilerOptions, ts.createCompilerHost(compilerOptions))
   checkErrors(ts.getPreEmitDiagnostics(program))
 
-  const compilerOutDir = compilerOptions.outDir
+  const compilerOutDir = path.resolve(program.getCurrentDirectory(), compilerOptions.outDir!!)
   if (compilerOutDir == null) {
     throw new Error("outDir is not specified in the compilerOptions")
   }
@@ -29,18 +30,20 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
   const fileToSourceMap: any = {}
   const promises: Array<Promise<any>> = []
   const emittedFiles = new Set<string>()
-  const emitResult = program.emit(undefined, (fileName: string, data: any) => {
-    emittedFiles.add(fileName)
+  const currentDirectory = program.getCurrentDirectory()
+  const emitResult = program.emit(undefined, (fileName, data) => {
+    const file = path.resolve(currentDirectory, fileName)
+    emittedFiles.add(file)
 
-    if (fileName.endsWith(".js")) {
-      const sourceMapFileName = `${fileName}.map`
-      processCompiled(data, fileToSourceMap[sourceMapFileName], fileName, sourceMapFileName, promises)
+    if (file.endsWith(".js")) {
+      const sourceMapFileName = `${file}.map`
+      processCompiled(data, fileToSourceMap[sourceMapFileName], file, sourceMapFileName, promises, currentDirectory)
     }
-    else if (fileName.endsWith(".js.map")) {
-      fileToSourceMap[fileName] = data
+    else if (file.endsWith(".js.map")) {
+      fileToSourceMap[file] = data
     }
     else {
-      promises.push(outputFile(fileName, data))
+      promises.push(outputFile(file, data))
     }
   })
 
@@ -54,6 +57,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
 })
   .catch(error => {
     console.error(error.stack || error.message || error)
+    // noinspection TypeScriptValidateJSTypes
     process.exit(-1)
   })
 
@@ -72,26 +76,21 @@ async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any
   })
 }
 
-function processCompiled(code: string, sourceMap: string, jsFileName: string, sourceMapFileName: string, promises: Array<Promise<any>>) {
+function processCompiled(code: string, sourceMap: string, jsFile: string, sourceMapFileName: string, promises: Array<Promise<any>>, currentDirectory: string) {
   const options: any = {
     inputSourceMap: sourceMap == null ? null : JSON.parse(sourceMap),
     sourceMaps: true,
-    filename: jsFileName,
-  }
-  if (process.env.BABEL_WORKAROUND) {
-    options.presets = ["babel-preset-ts-node6-bluebird"]
-    options.plugins = ["./scripts/babel-plugin-version-transform.js"]
-  }
-  else if (process.env.BABEL_WORKAROUND2) {
-    options.presets = ["babel-preset-ts-node6-bluebird"]
+    filename: jsFile,
+    root: currentDirectory,
   }
   const result = babel.transform(code, options)
 
-  const match = code.match(regex)!
+  const match = code.match(regex)!!
   const sourceMapUrl = match[1] || match[2]
 
+  // add marker, so, babel-jest can easily detect is file required to be processed or not (maybe processed by IDE TS compiler)
   promises.push(
-    outputFile(jsFileName, result.code.replace(regex, "") + `\n//# sourceMappingURL=${sourceMapUrl}`),
+    outputFile(jsFile, result.code.replace(regex, "") + `\n// __ts-babel@6.0.4` + `\n//# sourceMappingURL=${sourceMapUrl}`),
     outputJson(sourceMapFileName, result.map))
 }
 

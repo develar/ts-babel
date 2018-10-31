@@ -15,7 +15,7 @@ module.exports = declare(function (api) {
 
   if (process.env.NODE_ENV === "production" || process.env.BABEL_ENV === "production") {
     plugins[1] = [
-      "transform-async-to-module-method",
+      "@babel/plugin-transform-async-to-generator",
       {
         module: "bluebird-lst",
         method: "coroutine"
