@@ -1,7 +1,7 @@
 {
   "name": "ts-babel",
   "description": "Transform TypeScript compiler result using Babel to granular target control",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "license": "MIT",
   "author": "Vladimir Krivosheev",
   "bin": {
