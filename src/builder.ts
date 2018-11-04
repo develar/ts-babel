@@ -63,8 +63,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
 
 async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any> {
   await BluebirdPromise.map(await readdir(outDir), file => {
-    // ts uses / regardless of OS
-    const fullPath = `${outDir}/${file}`
+    const fullPath = path.resolve(outDir, file)
     if (!file.includes(".")) {
       return removeOld(fullPath, emittedFiles)
     }
