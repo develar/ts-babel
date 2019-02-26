@@ -10,7 +10,6 @@ module.exports = declare(function (api) {
         lazy: string => !(string === "debug" || string === "path")
       }
     ],
-
   ]
 
   if (process.env.NODE_ENV === "production" || process.env.BABEL_ENV === "production") {
