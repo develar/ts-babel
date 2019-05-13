@@ -138,10 +138,22 @@ bluebird-lst@^1.0.7:
   dependencies:
     bluebird "^3.5.3"
 
+bluebird-lst@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/bluebird-lst/-/bluebird-lst-1.0.8.tgz#61b572e8b3eb57e0fff676a0e54566d93597e6a4"
+  integrity sha512-InUDOaBaIjIobOa3O4YRAbFgff907uTJZXW0m0rhk3zhVZ4GvsmdCLEAKC1CTWTtUWCM8iWTTfFX9N/xQR/etw==
+  dependencies:
+    bluebird "^3.5.4"
+
 bluebird@^3.5.3:
   version "3.5.3"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.3.tgz#7d01c6f9616c9a51ab0f8c549a79dfe6ec33efa7"
   integrity sha512-/qKPUQlaW1OyR51WeCPBvRnAlnZFUJkCSG5HzGnuIqhgyJtF+T94lFnn33eiazjRm2LAHVy2guNnaq48X9SJuw==
+
+bluebird@^3.5.4:
+  version "3.5.4"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.4.tgz#d6cc661595de30d5b3af5fcedd3c0b3ef6ec5714"
+  integrity sha512-FG+nFEZChJrbQ9tIccIfZJBz3J7mLrAhxakAbnrJWn8d7aKOC+LWifa0G+p4ZqKp4y13T7juYvdhq9NzKdsrjw==
 
 buffer-from@^1.0.0:
   version "1.1.1"
@@ -193,18 +205,18 @@ esutils@^2.0.2:
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
   integrity sha1-Cr9PHKpbyx96nYrMbepPqqBLrJs=
 
-fs-extra-p@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/fs-extra-p/-/fs-extra-p-7.0.1.tgz#4eec0b6dfa150fa90f6ddd773b4fb1d55cad54e3"
-  integrity sha512-yhd2OV0HnHt2oitlp+X9hl2ReX4X/7kQeL7/72qzPHTZj5eUPGzAKOvEglU02Fa1OeG2rSy/aKB4WGVaLiF8tw==
+fs-extra-p@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/fs-extra-p/-/fs-extra-p-8.0.0.tgz#ae1bdee9c6a97c5b552c29f9e2188021bf10c651"
+  integrity sha512-gP+HIe9Hyc+NuDcDm+wn4+s+0+WUPFFK89Uf9HogsRZeHwwKkyXUJi8FDdxf4bpr2+4/01kB3JUr2O54FS9UlQ==
   dependencies:
-    bluebird-lst "^1.0.7"
-    fs-extra "^7.0.1"
+    bluebird-lst "^1.0.8"
+    fs-extra "^8.0.0"
 
-fs-extra@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.1.tgz#4f189c44aa123b895f722804f55ea23eadc348e9"
-  integrity sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw==
+fs-extra@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.0.0.tgz#3660bea66719e3a3c46bf7a4b1249fb658db3f0c"
+  integrity sha512-3hU7dzpfqG+A7gloPULls7j9mKDzpCyMOTBvQS0lZfqVfjA6/m0AkLXq0O1vnfP5roXjjL1DuUGKapr8vJWmQw==
   dependencies:
     graceful-fs "^4.1.2"
     jsonfile "^4.0.0"
