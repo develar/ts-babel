@@ -7,20 +7,10 @@ module.exports = declare(function (api) {
     [
       "@babel/plugin-transform-modules-commonjs",
       {
-        lazy: string => !(string === "debug" || string === "path")
+        lazy: string => !(string === "debug" || string === "path" || string === "fs")
       }
     ],
   ]
-
-  if (process.env.NODE_ENV === "production" || process.env.BABEL_ENV === "production") {
-    plugins[1] = [
-      "@babel/plugin-transform-async-to-generator",
-      {
-        module: "bluebird-lst",
-        method: "coroutine"
-      }
-    ]
-  }
 
   return {plugins: plugins}
 })

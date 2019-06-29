@@ -1,7 +1,7 @@
 import * as ts from "typescript"
 import * as path from "path"
-import { readFile, readdir, stat, readJson } from "fs-extra-p"
-import BluebirdPromise from "bluebird-lst"
+import { promises as fs } from "fs"
+import * as bluebird from "bluebird"
 import { topologicallyBatchPackages } from "./PackageGraph"
 
 const globSuffix = "/*"
@@ -16,7 +16,7 @@ export async function transpile(transpilator: (basePath: string, config: ts.Pars
     const packageDir = paths[0].substring(0, paths[0].length - 2)
     const packageMetadata = await readProjectMetadata(packageDir)
     const toCompile = topologicallyBatchPackages(packageMetadata)
-    await BluebirdPromise.mapSeries(toCompile, it => {
+    await bluebird.mapSeries(toCompile, it => {
       console.log(`Building ${it.map(it => it.name).join(", ")}`)
       return transpilePaths(it.map(it => path.join(packageDir, it.name)), transpilator, false)
     })
@@ -25,12 +25,12 @@ export async function transpile(transpilator: (basePath: string, config: ts.Pars
 }
 
 export async function readProjectMetadata(packageDir: string) {
-  const packageDirs = BluebirdPromise.filter((await readdir(packageDir)).filter(it => !it.includes(".")).sort(), it => {
-    return stat(path.join(packageDir, it, "tsconfig.json"))
+  const packageDirs = bluebird.filter((await fs.readdir(packageDir)).filter(it => !it.includes(".")).sort(), it => {
+    return fs.stat(path.join(packageDir, it, "tsconfig.json"))
       .then(it => it.isFile())
       .catch(() => false)
   })
-  return await BluebirdPromise.map(packageDirs, it => readJson(path.join(packageDir, it, "package.json")), {concurrency: 8})
+  return await bluebird.map(packageDirs, it => fs.readFile(path.join(packageDir, it, "package.json"), "utf-8").then(it => JSON.parse(it)), {concurrency: 8})
 }
 
 async function transpilePaths(paths: Array<string>, transpilator: (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) => Promise<any>, isLogBuilding: boolean) {
@@ -65,7 +65,7 @@ async function transpilePaths(paths: Array<string>, transpilator: (basePath: str
 
 async function build(basePath: string, transpilator: (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) => Promise<any>) {
   const tsConfigPath = path.join(basePath, "tsconfig.json")
-  const jsonResult = ts.parseConfigFileTextToJson(tsConfigPath, await readFile(tsConfigPath, "utf8"))
+  const jsonResult = ts.parseConfigFileTextToJson(tsConfigPath, await fs.readFile(tsConfigPath, "utf8"))
   if (jsonResult.error != null) {
     throw new CompilationError([jsonResult.error])
   }

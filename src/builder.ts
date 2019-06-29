@@ -5,9 +5,10 @@ require("v8-compile-cache")
 import * as ts from "typescript"
 import * as path from "path"
 import * as babel from "@babel/core"
-import { readdir, ensureDir, unlink, outputFile, outputJson } from "fs-extra-p"
-import BluebirdPromise from "bluebird-lst"
+import { outputFile, outputJson } from "fs-extra"
+import * as bluebird from "bluebird"
 import { transpile, checkErrors } from "./util"
+import { promises as fs } from "fs"
 
 transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) => {
   const compilerOptions = config.options
@@ -25,7 +26,7 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
     throw new Error("outDir is not specified in the compilerOptions")
   }
 
-  await ensureDir(compilerOutDir)
+  await fs.mkdir(compilerOutDir, {recursive: true})
 
   const fileToSourceMap: any = {}
   const promises: Array<Promise<any>> = []
@@ -62,14 +63,14 @@ transpile(async (basePath: string, config: ts.ParsedCommandLine, tsConfig: any) 
   })
 
 async function removeOld(outDir: string, emittedFiles: Set<string>): Promise<any> {
-  await BluebirdPromise.map(await readdir(outDir), file => {
+  await bluebird.map(await fs.readdir(outDir), file => {
     const fullPath = path.resolve(outDir, file)
     if (!file.includes(".")) {
       return removeOld(fullPath, emittedFiles)
     }
 
     if ((file.endsWith(".js") || file.endsWith(".js.map") || file.endsWith(".d.ts")) && !emittedFiles.has(fullPath)) {
-      return unlink(fullPath)
+      return fs.unlink(fullPath)
     }
     return null
   })

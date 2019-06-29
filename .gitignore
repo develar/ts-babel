@@ -3,6 +3,8 @@ npm-debug.log
 /out/
 /.idea/copyright/
 watcherTasks.xml
+
 /.idea/inspectionProfiles/
+/.idea/workspace.xml
 
 /test/fixtures/out
