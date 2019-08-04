@@ -21,7 +21,7 @@
     "@babel/core": "^7.4.5",
     "bluebird": "^3.5.5",
     "fs-extra": "^8.1.0",
-    "v8-compile-cache": "^2.0.3"
+    "v8-compile-cache": "^2.1.0"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.27",
