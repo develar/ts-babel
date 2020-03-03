@@ -1,6 +1,6 @@
 {
   "name": "babel-preset-ts-node8",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Preset to compile Typescript using Babel for Node.js 8.0",
   "main": "index.js",
   "repository": "develar/ts-babel",
@@ -10,9 +10,9 @@
     "index.js"
   ],
   "dependencies": {
-    "@babel/plugin-transform-modules-commonjs": "^7.2.0"
+    "@babel/plugin-transform-modules-commonjs": "^7.8.3"
   },
   "peerDependencies": {
-    "@babel/core": "^7.3.4"
+    "@babel/core": "^7.8.6"
   }
 }
