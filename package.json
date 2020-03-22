@@ -18,7 +18,7 @@
     "release": "yarn compile && npm publish"
   },
   "dependencies": {
-    "@babel/core": "^7.4.5",
+    "@babel/core": "^7.9.0",
     "bluebird": "^3.5.5",
     "fs-extra": "^8.1.0",
     "v8-compile-cache": "^2.0.3"
